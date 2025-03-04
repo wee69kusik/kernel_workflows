@@ -155,32 +155,32 @@
           echo "Current working directory (Kernel Root): $(pwd)"
   
           # Copy SUSFS files using absolute paths
-           cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/fs/susfs.c" "$KERNEL_FOLDER/fs/"
-           cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs.h" "$KERNEL_FOLDER/include/linux/"
-           cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs_def.h" "$KERNEL_FOLDER/include/linux/"
+          cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/fs/susfs.c" "$KERNEL_FOLDER/fs/"
+          cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs.h" "$KERNEL_FOLDER/include/linux/"
+          cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs_def.h" "$KERNEL_FOLDER/include/linux/"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
           # python3
           PYTHON3="$KERNEL_PATCHES_FOLDER/python3.patch"
           PYTHON3_DST="$KERNEL_FOLDER/python3.patch"
-           ls -l "$PYTHON3"
-           cp "$PYTHON3" "$PYTHON3_DST"
-           echo "Applying python3.patch..."
-           patch -p1 -F 3 -N < "$KERNEL_FOLDER/python3.patch" || true
+          ls -l "$PYTHON3"
+          cp "$PYTHON3" "$PYTHON3_DST"
+          echo "Applying python3.patch..."
+          patch -p1 -F 3 -N < "$KERNEL_FOLDER/python3.patch" || true
           # Manual hooks
           MANUAL_HOOKS="$KERNEL_PATCHES_FOLDER/manual_hooks.patch"
           MANUAL_HOOKS_DST="$KERNEL_FOLDER/manual_hooks.patch"
-           ls -l "$MANUAL_HOOKS"
-           cp "$MANUAL_HOOKS" "$MANUAL_HOOKS_DST"
-           echo "Applying manual_hooks.patch..."
-           patch -p1 -F 3 -N < "$KERNEL_FOLDER/manual_hooks.patch" || true
+          ls -l "$MANUAL_HOOKS"
+          cp "$MANUAL_HOOKS" "$MANUAL_HOOKS_DST"
+          echo "Applying manual_hooks.patch..."
+          patch -p1 -F 3 -N < "$KERNEL_FOLDER/manual_hooks.patch" || true
           # Set up KernelSU-Next (ensuring a fresh setup)
-           echo "--- Setting up KernelSU-Next ---"
-           rm -rf "$KERNEL_FOLDER/KernelSU-Next"
-           curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
-           echo "--- KernelSU-Next setup complete ---"
+          echo "--- Setting up KernelSU-Next ---"
+          rm -rf "$KERNEL_FOLDER/KernelSU-Next"
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+          echo "--- KernelSU-Next setup complete ---"
   
           # Debug and copy patch files using absolute paths
-           echo "--- Debugging Patch File Copying ---"
+          echo "--- Debugging Patch File Copying ---"
           SUSFS4KSU_PATCHES_FOLDER="$WORKSPACE_FOLDER/susfs4ksu/kernel_patches"
           SUSFS_PATCH_50_SRC="$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_kernel-4.14.patch"
           HIDE_STUFF_PATCH_69_SRC="$KERNEL_PATCHES_FOLDER/69_hide_stuff.patch"
@@ -199,14 +199,14 @@
           ls -l "$FIX_SUSFS_REJECTS"
           ls -l "$FIX_HIDE_REJECTS"
 
-           echo "Copying patch files..."
-           mkdir -p "$KERNEL_FOLDER/fs" "$KERNEL_FOLDER/include/linux" "$KERNEL_FOLDER/KernelSU-Next"
-           cp "$SUSFS_PATCH_50_SRC" "$SUSFS_PATCH_50_DST"
-           cp "$HIDE_STUFF_PATCH_69_SRC" "$HIDE_STUFF_PATCH_69_DST"
-           cp "$KSU_SUSFS_PATCH_10_SRC" "$KSU_SUSFS_PATCH_10_DST"
-           cp "$FIX_SUSFS_REJECTS" "$FIX_SUSFS_REJECTS_DST"
-           cp "$FIX_HIDE_REJECTS" "$FIX_HIDE_REJECTS_DST"
-           echo "Patch files copied."
+          echo "Copying patch files..."
+          mkdir -p "$KERNEL_FOLDER/fs" "$KERNEL_FOLDER/include/linux" "$KERNEL_FOLDER/KernelSU-Next"
+          cp "$SUSFS_PATCH_50_SRC" "$SUSFS_PATCH_50_DST"
+          cp "$HIDE_STUFF_PATCH_69_SRC" "$HIDE_STUFF_PATCH_69_DST"
+          cp "$KSU_SUSFS_PATCH_10_SRC" "$KSU_SUSFS_PATCH_10_DST"
+          cp "$FIX_SUSFS_REJECTS" "$FIX_SUSFS_REJECTS_DST"
+          cp "$FIX_HIDE_REJECTS" "$FIX_HIDE_REJECTS_DST"
+          echo "Patch files copied."
   
           # (Optionally) apply KernelSU patch inside the KernelSU-Next folder
           # echo "--- Applying KernelSU Patch (KernelSU-Next dir) ---"
@@ -226,8 +226,6 @@
            patch -p1 -F 3 -N < "$KERNEL_FOLDER/50_add_susfs.patch" || true
            echo "Applying fix_susfs_rejects.patch..."
            patch -p1 -F 3 -N < "$KERNEL_FOLDER/fix_susfs_rejects.patch" || true
-#            echo "Applying 69_hide_stuff.patch..."
-#            patch -p1 -F 3 -N < "$KERNEL_FOLDER/69_hide_stuff.patch" || true
            echo "Current working directory (Kernel Root) AFTER SUSFS patches: $(pwd)"
            echo "--- SUSFS and Hide Stuff Patches applied ---"
   
