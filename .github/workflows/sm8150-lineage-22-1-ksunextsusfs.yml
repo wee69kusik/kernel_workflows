@@ -159,13 +159,6 @@
           cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs.h" "$KERNEL_FOLDER/include/linux/"
           cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs_def.h" "$KERNEL_FOLDER/include/linux/"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
-          # python3
-          PYTHON3="$KERNEL_PATCHES_FOLDER/python3.patch"
-          PYTHON3_DST="$KERNEL_FOLDER/python3.patch"
-          ls -l "$PYTHON3"
-          cp "$PYTHON3" "$PYTHON3_DST"
-          echo "Applying python3.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_FOLDER/python3.patch" || true
           # Manual hooks
           MANUAL_HOOKS="$KERNEL_PATCHES_FOLDER/manual_hooks.patch"
           MANUAL_HOOKS_DST="$KERNEL_FOLDER/manual_hooks.patch"
