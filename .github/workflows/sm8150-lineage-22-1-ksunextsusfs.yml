@@ -131,19 +131,19 @@
         id: kernel
         run: |
           set -e
-        
+ 
           # Use the absolute workspace folder
-          WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
+           WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
           # Clone the kernel tree into an absolute path
-          git clone --depth=1 "${{ inputs.kernel_url }}" -b "${{ inputs.kernel_branch }}" "$WORKSPACE_FOLDER/kernel_tree"
-          echo "kernel-folder=$WORKSPACE_FOLDER/kernel_tree" >> $GITHUB_OUTPUT
+           git clone --depth=1 "${{ inputs.kernel_url }}" -b "${{ inputs.kernel_branch }}" "$WORKSPACE_FOLDER/kernel_tree"
+           echo "kernel-folder=$WORKSPACE_FOLDER/kernel_tree" >> $GITHUB_OUTPUT
 
           # Clone additional repositories into the absolute workspace folder
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.14 "$WORKSPACE_FOLDER/susfs4ksu"
-          git clone "${{ inputs.patches_url }}" -b "${{ inputs.patches_branch }}" "$WORKSPACE_FOLDER/kernel_patches"
+           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.14 "$WORKSPACE_FOLDER/susfs4ksu"
+           git clone "${{ inputs.patches_url }}" -b "${{ inputs.patches_branch }}" "$WORKSPACE_FOLDER/kernel_patches"
              
           # Create necessary directories in the kernel tree (using absolute paths)
-          mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
+           mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
       - name: Apply KernelSU and SUSFS patches
         run: |
           set -e
