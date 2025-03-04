@@ -11,14 +11,14 @@ on:
 jobs:
   
   sm8150-lineage-22.1:
-    uses: ./.github/workflows/sm8150-lineage-22.1/actions.yml
+    uses: ./.github/workflows/sm8150-lineage-22.1-actions.yml
 
   noname-lineage-22.1:
-    uses: ./.github/workflows/noname-lineage-22.1/actions.yml
+    uses: ./.github/workflows/noname-lineage-22.1-actions.yml
 
   noname-lineage-18.1:
-    uses: ./.github/workflows/noname-lineage-18.1/actions.yml
+    uses: ./.github/workflows/noname-lineage-18.1-actions.yml
 
   noname-vic:
-    uses: ./.github/workflows/noname-vic/actions.yml
+    uses: ./.github/workflows/noname-vic-actions.yml
   

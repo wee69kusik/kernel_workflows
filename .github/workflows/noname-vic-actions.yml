@@ -21,15 +21,15 @@ jobs:
     - name: Set env variables
       id: env
       run: |
-       echo "kernel_url=https://github.com/TheSillyOk/android_kernel_qcom_sm8150" >> $GITHUB_OUTPUT
-       echo "kernel_branch=lineage-22.1" >> $GITHUB_OUTPUT
+       echo "kernel_url=https://github.com/TheSillyOk/kernel_laurel_sprout" >> $GITHUB_OUTPUT
+       echo "kernel_branch=vic" >> $GITHUB_OUTPUT
        echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
-       echo "patches_branch=new" >> $GITHUB_OUTPUT
+       echo "patches_branch=master" >> $GITHUB_OUTPUT
        echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
        echo "anykernel_branch=master" >> $GITHUB_OUTPUT
 
   ksunextsusfs:
-    uses: ./.github/workflows/sm8150-lineage-22.1/ksunextsusfs.yml
+    uses: ./.github/workflows/noname-vic-ksunextsusfs.yml
     needs: set-env
     secrets: inherit
     with:
@@ -41,7 +41,7 @@ jobs:
      anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
 
   main:
-    uses: ./.github/workflows/sm8150-lineage-22.1/main.yml
+    uses: ./.github/workflows/noname-vic-main.yml
     needs: set-env
     secrets: inherit
     with:
@@ -53,7 +53,7 @@ jobs:
      anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
 
   ksunext:
-    uses: ./.github/workflows/sm8150-lineage-22.1/ksunext.yml
+    uses: ./.github/workflows/noname-vic-ksunext.yml
     needs: set-env
     secrets: inherit
     with:
