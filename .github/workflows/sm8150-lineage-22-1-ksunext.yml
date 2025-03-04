@@ -21,6 +21,9 @@
      anykernel_branch:
       type: string
       required: true
+     tag:
+      type: string
+      required: true
 
  jobs:
   build:
@@ -155,6 +158,13 @@
            # cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs.h" "$KERNEL_FOLDER/include/linux/"
            # cp "$WORKSPACE_FOLDER/susfs4ksu/kernel_patches/include/linux/susfs_def.h" "$KERNEL_FOLDER/include/linux/"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
+          # python3
+          PYTHON3="$KERNEL_PATCHES_FOLDER/python3.patch"
+          PYTHON3_DST="$KERNEL_FOLDER/python3.patch"
+           ls -l "$PYTHON3"
+           cp "$PYTHON3" "$PYTHON3_DST"
+           echo "Applying python3.patch..."
+           patch -p1 -F 3 -N < "$KERNEL_FOLDER/python3.patch" || true
           # Manual hooks
           MANUAL_HOOKS="$KERNEL_PATCHES_FOLDER/manual_hooks.patch"
           MANUAL_HOOKS_DST="$KERNEL_FOLDER/manual_hooks.patch"
@@ -277,7 +287,7 @@
                 cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/$ak_folder_name"
               fi
               local date="$(date +"%d%m%Y")"
-              local zip_name="$date-MiA3-[New-Kramel]-[KSUNext]"
+              local zip_name="$date-MiA3-[KSUNext]-${{ inputs.tag }}"
               cd "$BOOT_FOLDER"
               mkdir release
               cp -r $PWD/$ak_folder_name/* $PWD/release

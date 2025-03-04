@@ -21,6 +21,9 @@
      anykernel_branch:
       type: string
       required: true
+     tag:
+      type: string
+      required: true
 
  jobs:
   build:
@@ -223,8 +226,8 @@
            patch -p1 -F 3 -N < "$KERNEL_FOLDER/50_add_susfs.patch" || true
            echo "Applying fix_susfs_rejects.patch..."
            patch -p1 -F 3 -N < "$KERNEL_FOLDER/fix_susfs_rejects.patch" || true
-           # echo "Applying 69_hide_stuff.patch..."
-           # patch -p1 -F 3 -N < "$KERNEL_FOLDER/69_hide_stuff.patch" || true
+            echo "Applying 69_hide_stuff.patch..."
+            patch -p1 -F 3 -N < "$KERNEL_FOLDER/69_hide_stuff.patch" || true
            echo "Current working directory (Kernel Root) AFTER SUSFS patches: $(pwd)"
            echo "--- SUSFS and Hide Stuff Patches applied ---"
   
@@ -317,7 +320,7 @@
                 cp -f "$BOOT_FOLDER/dtbo.img" "$BOOT_FOLDER/$ak_folder_name"
               fi
               local date="$(date +"%d%m%Y")"
-              local zip_name="$date-MiA3-[KSUNext-SUSFS]-[RDP]-NoName"
+              local zip_name="$date-MiA3-[KSUNext-SUSFS]-${{ inputs.tag }}"
               cd "$BOOT_FOLDER"
               mkdir release
               cp -r $PWD/$ak_folder_name/* $PWD/release
