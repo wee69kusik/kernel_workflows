@@ -143,7 +143,7 @@
            git clone "${{ inputs.patches_url }}" -b "${{ inputs.patches_branch }}" "$WORKSPACE_FOLDER/kernel_patches"
              
           # Create necessary directories in the kernel tree (using absolute paths)
-           mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
+          mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
       - name: Apply KernelSU and SUSFS patches
         run: |
           set -e
