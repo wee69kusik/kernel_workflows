@@ -146,6 +146,7 @@
       - name: Apply KernelSU and SUSFS patches
         run: |
           set -e
+      
           # Define absolute paths
           KERNEL_FOLDER="${{ steps.kernel.outputs.kernel-folder }}"
           WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
