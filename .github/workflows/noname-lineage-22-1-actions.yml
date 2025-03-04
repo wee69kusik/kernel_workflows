@@ -17,7 +17,6 @@ jobs:
       patches_branch: ${{ steps.env.outputs.patches_branch }}
       anykernel_url: ${{ steps.env.outputs.anykernel_url }}
       anykernel_branch: ${{ steps.env.outputs.anykernel_branch }}
-      which: ${{ steps.env.outputs.which }}
       tag: ${{ steps.env.outputs.tag }}
     steps:
       - name: Set env variables
@@ -29,11 +28,10 @@ jobs:
           echo "patches_branch=master" >> $GITHUB_OUTPUT
           echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
           echo "anykernel_branch=master" >> $GITHUB_OUTPUT
-          echo "which=noname-lineage-22-1" >> $GITHUB_OUTPUT
           echo "tag=[NoName-LOS-22.1]" >> $GITHUB_OUTPUT
 
   ksunextsusfs:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-ksunextsusfs.yml
+    uses: ./.github/workflows/noname-lineage-22-1-ksunextsusfs.yml
     needs: set-env
     secrets: inherit
     with:
@@ -46,7 +44,7 @@ jobs:
       tag: ${{ needs.set-env.outputs.tag }}
 
   main:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-main.yml
+    uses: ./.github/workflows/noname-lineage-22-1-main.yml
     needs: set-env
     secrets: inherit
     with:
@@ -59,7 +57,7 @@ jobs:
       tag: ${{ needs.set-env.outputs.tag }}
 
   ksunext:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-ksunext.yml
+    uses: ./.github/workflows/noname-lineage-22-1-ksunext.yml
     needs: set-env
     secrets: inherit
     with:
