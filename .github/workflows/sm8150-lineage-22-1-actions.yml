@@ -9,64 +9,62 @@ on:
 
 jobs:
   set-env:
-   runs-on: ubuntu-latest
-   outputs:
-    kernel_url: ${{ steps.env.outputs.kernel_url }}
-    kernel_branch: ${{ steps.env.outputs.kernel_branch }}
-    patches_url: ${{ steps.env.outputs.patches_url }}
-    patches_branch: ${{ steps.env.outputs.patches_branch }}
-    anykernel_url: ${{ steps.env.outputs.anykernel_url }}
-    anykernel_branch: ${{ steps.env.outputs.anykernel_branch }}
-    which: ${{ steps.env.outputs.which }}
-    tag: ${{ steps.env.outputs.tag }}
-   steps:
-    - name: Set env variables
-      id: env
-      run: |
-       echo "kernel_url=https://github.com/TheSillyOk/android_kernel_qcom_sm8150" >> $GITHUB_OUTPUT
-       echo "kernel_branch=lineage-22.1" >> $GITHUB_OUTPUT
-       echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
-       echo "patches_branch=new" >> $GITHUB_OUTPUT
-       echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
-       echo "anykernel_branch=master" >> $GITHUB_OUTPUT
-       echo "which=sm8150-lineage-22-1" >> $GITHUB_OUTPUT
-       echo "tag=[SM8150-LOS-22.1]" >> $GITHUB_OUTPUT
+    runs-on: ubuntu-latest
+    outputs:
+      kernel_url: ${{ steps.env.outputs.kernel_url }}
+      kernel_branch: ${{ steps.env.outputs.kernel_branch }}
+      patches_url: ${{ steps.env.outputs.patches_url }}
+      patches_branch: ${{ steps.env.outputs.patches_branch }}
+      anykernel_url: ${{ steps.env.outputs.anykernel_url }}
+      anykernel_branch: ${{ steps.env.outputs.anykernel_branch }}
+      tag: ${{ steps.env.outputs.tag }}
+    steps:
+      - name: Set env variables
+        id: env
+        run: |
+          echo "kernel_url=https://github.com/TheSillyOk/android_kernel_qcom_sm8150" >> $GITHUB_OUTPUT
+          echo "kernel_branch=lineage-22.1" >> $GITHUB_OUTPUT
+          echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
+          echo "patches_branch=new" >> $GITHUB_OUTPUT
+          echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
+          echo "anykernel_branch=master" >> $GITHUB_OUTPUT
+          echo "tag=[SM8150-LOS-22.1]" >> $GITHUB_OUTPUT
 
   ksunextsusfs:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-ksunextsusfs.yml
+    uses: ./.github/workflows/sm8150-lineage-22-1-ksunextsusfs.yml
     needs: set-env
     secrets: inherit
     with:
-     kernel_url: ${{ needs.set-env.outputs.kernel_url }}
-     kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
-     patches_url: ${{ needs.set-env.outputs.patches_url }}
-     patches_branch: ${{ needs.set-env.outputs.patches_branch }}
-     anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
-     anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
-     tag: ${{ needs.set-env.outputs.tag }}
+      kernel_url: ${{ needs.set-env.outputs.kernel_url }}
+      kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
+      patches_url: ${{ needs.set-env.outputs.patches_url }}
+      patches_branch: ${{ needs.set-env.outputs.patches_branch }}
+      anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
+      anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
+      tag: ${{ needs.set-env.outputs.tag }}
 
   main:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-main.yml
+    uses: ./.github/workflows/sm8150-lineage-22-1-main.yml
     needs: set-env
     secrets: inherit
     with:
-     kernel_url: ${{ needs.set-env.outputs.kernel_url }}
-     kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
-     patches_url: ${{ needs.set-env.outputs.patches_url }}
-     patches_branch: ${{ needs.set-env.outputs.patches_branch }}
-     anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
-     anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
-     tag: ${{ needs.set-env.outputs.tag }}
+      kernel_url: ${{ needs.set-env.outputs.kernel_url }}
+      kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
+      patches_url: ${{ needs.set-env.outputs.patches_url }}
+      patches_branch: ${{ needs.set-env.outputs.patches_branch }}
+      anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
+      anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
+      tag: ${{ needs.set-env.outputs.tag }}
 
   ksunext:
-    uses: ./.github/workflows/${{ needs.set-env.outputs.which }}-ksunext.yml
+    uses: ./.github/workflows/sm8150-lineage-22-1-ksunext.yml
     needs: set-env
     secrets: inherit
     with:
-     kernel_url: ${{ needs.set-env.outputs.kernel_url }}
-     kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
-     patches_url: ${{ needs.set-env.outputs.patches_url }}
-     patches_branch: ${{ needs.set-env.outputs.patches_branch }}
-     anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
-     anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
-     tag: ${{ needs.set-env.outputs.tag }}
+      kernel_url: ${{ needs.set-env.outputs.kernel_url }}
+      kernel_branch: ${{ needs.set-env.outputs.kernel_branch }}
+      patches_url: ${{ needs.set-env.outputs.patches_url }}
+      patches_branch: ${{ needs.set-env.outputs.patches_branch }}
+      anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
+      anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
+      tag: ${{ needs.set-env.outputs.tag }}
