@@ -240,14 +240,8 @@
 
        
 
-          # Append SUSFS configuration settings to the defconfig file (using its absolute path)
-           cat >> "$KERNEL_FOLDER/arch/arm64/configs/vendor/laurel_sprout-perf_defconfig" <<EOF
-           CONFIG_KSU=y
-           CONFIG_KSU_SUSFS=y
-           CONFIG_KPROBES=n
-           # CONFIG_HAVE_KPROBES is not set
-           # CONFIG_KPROBE_EVENTS is not set
-           EOF
+          # Append configuration settings to the defconfig file (using its absolute path)
+           sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/laurel_sprout-perf_defconfig && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_KSU_SUSFS=y\nCONFIG_TMPFS_XATTR=y" >> arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
 
       - name: Building kernel
         id: build
