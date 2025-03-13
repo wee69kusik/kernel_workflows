@@ -181,22 +181,6 @@
           # echo "--- KernelSU-Next setup complete ---"
   
           # Debug and copy patch files using absolute paths
-          # echo "--- Debugging Patch File Copying ---"
-          SUSFS4KSU_PATCHES_FOLDER="$WORKSPACE_FOLDER/susfs4ksu/kernel_patches"
-          SUSFS_PATCH_50_SRC="$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_kernel-4.14.patch"
-          HIDE_STUFF_PATCH_69_SRC="$KERNEL_PATCHES_FOLDER/69_hide_stuff.patch"
-          KSU_SUSFS_PATCH_10_SRC="$SUSFS4KSU_PATCHES_FOLDER/KernelSU/10_enable_susfs_for_ksu.patch"
-          FIX_SUSFS_REJECTS="$KERNEL_PATCHES_FOLDER/fix_susfs_rejects.patch"
-          SUSFS_PATCH_50_DST="$KERNEL_FOLDER/50_add_susfs.patch"
-          HIDE_STUFF_PATCH_69_DST="$KERNEL_FOLDER/69_hide_stuff.patch"
-          KSU_SUSFS_PATCH_10_DST="$KERNEL_FOLDER/KernelSU-Next/10_enable_susfs_for_ksu.patch"
-          FIX_SUSFS_REJECTS_DST="$KERNEL_FOLDER/fix_susfs_rejects.patch"
-          echo "Checking source patch file existence:"
-          ls -l "$SUSFS_PATCH_50_SRC"
-          ls -l "$HIDE_STUFF_PATCH_69_SRC"
-          ls -l "$KSU_SUSFS_PATCH_10_SRC"
-          ls -l "$FIX_SUSFS_REJECTS"
-
           # echo "Copying patch files..."
           # mkdir -p "$KERNEL_FOLDER/fs" "$KERNEL_FOLDER/include/linux" "$KERNEL_FOLDER/KernelSU-Next"
           # cp "$SUSFS_PATCH_50_SRC" "$SUSFS_PATCH_50_DST"
