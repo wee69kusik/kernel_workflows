@@ -262,6 +262,7 @@
           BUILD_START_TIME=$(date +%s)
           echo "Building kernel using absolute paths..."
 
+          export CCACHE_EXEC=$(which ccache)
           export ARCH=arm64
           export SUBARCH=arm64
           export KBUILD_BUILD_USER="Ok"
@@ -273,7 +274,7 @@
 
           # Use an absolute output directory for the build (e.g., $KERNEL_FOLDER/out)
           make O="$KERNEL_FOLDER/out" ARCH=arm64 vendor/laurel_sprout-perf_defconfig V=1
-          make O="$KERNEL_FOLDER/out" CC=clang LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
+          make O="$KERNEL_FOLDER/out" CC="ccache clang" LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
 
           BUILD_END_TIME=$(date +%s)
           BUILD_ELAPSED_TIME=$((BUILD_END_TIME - BUILD_START_TIME))
