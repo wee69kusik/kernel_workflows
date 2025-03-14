@@ -176,7 +176,7 @@
           # Set up KernelSU-Next (ensuring a fresh setup)
            echo "--- Setting up KernelSU-Next ---"
            rm -rf "$KERNEL_FOLDER/KernelSU-Next"
-           curl -LSs "${{ inputs.ksu_url>}}" | bash -s "${{ inputs.ksu_branch }}"
+           curl -LSs "${{ inputs.ksu_url }}" | bash -s "${{ inputs.ksu_branch }}"
            echo "--- KernelSU-Next setup complete ---"
   
           # (Optionally) apply KernelSU patch inside the KernelSU-Next folder

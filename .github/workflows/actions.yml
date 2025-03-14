@@ -52,7 +52,7 @@ jobs:
 
   noname-vic:
     uses: ./.github/workflows/noname-vic-actions.yml
-      needs: set-env
+    needs: set-env
     secrets: inherit
     with:
       ksu_url: ${{ needs.set-env.outputs.ksu_url }}

@@ -177,7 +177,7 @@
           # Set up KernelSU-Next (ensuring a fresh setup)
           echo "--- Setting up KernelSU-Next ---"
           rm -rf "$KERNEL_FOLDER/KernelSU-Next"
-          curl -LSs "${{ inputs.ksu_url>}}" | bash -s "${{ inputs.ksu_sus_b }}"
+          curl -LSs "${{ inputs.ksu_url }}" | bash -s "${{ inputs.ksu_sus_b }}"
           echo "--- KernelSU-Next setup complete ---"
   
           # Debug and copy patch files using absolute paths
