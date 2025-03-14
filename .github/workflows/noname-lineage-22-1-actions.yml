@@ -6,7 +6,16 @@ permissions:
   
 on:
   workflow_call:
-
+   inputs:
+     ksu_url:
+      type: string
+      required: true
+     ksu_branch:
+      type: string
+      required: true
+     ksu_sus_b:
+      type: string
+      required: true
 jobs:
   set-env:
     runs-on: ubuntu-latest
@@ -42,7 +51,9 @@ jobs:
       anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
       anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
       tag: ${{ needs.set-env.outputs.tag }}
-
+      ksu_url: ${{ inputs.ksu_url }}
+      ksu_branch: ${{ inputs.ksu_branch }}
+      ksu_sus_b: ${{ inputs.ksu_sus_b }}
   main:
     uses: ./.github/workflows/noname-lineage-22-1-main.yml
     needs: set-env
@@ -55,7 +66,9 @@ jobs:
       anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
       anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
       tag: ${{ needs.set-env.outputs.tag }}
-
+      ksu_url: ${{ inputs.ksu_url }}
+      ksu_branch: ${{ inputs.ksu_branch }}
+      ksu_sus_b: ${{ inputs.ksu_sus_b }}
   ksunext:
     uses: ./.github/workflows/noname-lineage-22-1-ksunext.yml
     needs: set-env
@@ -68,3 +81,6 @@ jobs:
       anykernel_url: ${{ needs.set-env.outputs.anykernel_url }}
       anykernel_branch: ${{ needs.set-env.outputs.anykernel_branch }}
       tag: ${{ needs.set-env.outputs.tag }}
+      ksu_url: ${{ inputs.ksu_url }}
+      ksu_branch: ${{ inputs.ksu_branch }}
+      ksu_sus_b: ${{ inputs.ksu_sus_b }}

@@ -9,16 +9,52 @@ on:
   workflow_dispatch:
 
 jobs:
-  
+  set-env:
+    runs-on: ubuntu-latest
+    outputs:
+      ksu_url: ${{ steps.env.outputs.ksu_url }}
+      ksu_branch: ${{ steps.env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ steps.env.outputs.ksu_sus_b }}
+    steps:
+      - name: Set env variables
+        id: env
+        run: |
+          echo "ksu_url=https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" >> $GITHUB_OUTPUT
+          echo "ksu_branch=next" >> $GITHUB_OUTPUT
+          echo "ksu_sus_b=next-susfs" >> $GITHUB_OUTPUT
+
   sm8150-lineage-22-1:
     uses: ./.github/workflows/sm8150-lineage-22-1-actions.yml
+    needs: set-env
+    secrets: inherit
+    with:
+      ksu_url: ${{ needs.set-env.outputs.ksu_url }}
+      ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
 
   noname-lineage-22-1:
     uses: ./.github/workflows/noname-lineage-22-1-actions.yml
+    needs: set-env
+    secrets: inherit
+    with:
+      ksu_url: ${{ needs.set-env.outputs.ksu_url }}
+      ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
 
   noname-lineage-18-1:
     uses: ./.github/workflows/noname-lineage-18-1-actions.yml
+    needs: set-env
+    secrets: inherit
+    with:
+      ksu_url: ${{ needs.set-env.outputs.ksu_url }}
+      ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
 
   noname-vic:
     uses: ./.github/workflows/noname-vic-actions.yml
-  
+      needs: set-env
+    secrets: inherit
+    with:
+      ksu_url: ${{ needs.set-env.outputs.ksu_url }}
+      ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
