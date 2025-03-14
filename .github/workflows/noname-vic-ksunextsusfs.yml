@@ -129,7 +129,7 @@
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          max-size: 2G
+          max-size: 7G
       #- name: Python2
       #  uses: actions/setup-python@v5
       #  with:

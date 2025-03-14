@@ -130,7 +130,7 @@
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1.2
         with:
-          max-size: 2G
+          max-size: 7G
       #- name: Python2
       #  uses: actions/setup-python@v5
       #  with:
@@ -354,4 +354,4 @@
             ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/release/*
 #            ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/${{ steps.anykernel.outputs.anykernel_zipname }}
 #            !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/*AnyKernel*/.git
-#            !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/true
+#            !${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot
