@@ -31,8 +31,8 @@ jobs:
       - name: Set env variables
         id: env
         run: |
-          echo "kernel_url=https://github.com/TheSillyOk/kernel_laurel_sprout" >> $GITHUB_OUTPUT
-          echo "kernel_branch=lineage-22.1" >> $GITHUB_OUTPUT
+          echo "kernel_url=https://github.com/aleeeee1/kernel_xiaomi_laurel_sprout-noname" >> $GITHUB_OUTPUT
+          echo "kernel_branch=heresy" >> $GITHUB_OUTPUT
           echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
           echo "patches_branch=master" >> $GITHUB_OUTPUT
           echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
