@@ -127,14 +127,21 @@
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: echo "Clang was downloaded and extracted!"
 
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+      - name: Set up ccache
+        run: |
+         mkdir -p ~/.cache/bazel
+         ccache --version
+         ccache --max-size=2G
+         ccache --set-config=compression=true
+         echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+
+      - name: Restore ccache from cache
+        uses: actions/cache@v4
         with:
-          max-size: 7G
-      #- name: Python2
-      #  uses: actions/setup-python@v5
-      #  with:
-      #    python-version: '2.7'
+         path: ~/.ccache
+         key: ${{ inputs.android_version }}-${{ inputs.tag }}-ccache-${{ github.sha }}
+         restore-keys: |
+      ${{ inputs.tag }}-ccache-
 
       - name: Clone kernel source and repositories
         id: kernel
@@ -299,7 +306,7 @@
                 cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/$ak_folder_name"
               fi
               local date="$(date +"%d%m%Y")"
-              local zip_name="$date-MiA3-${{ inputs.tag }}"
+              local zip_name="$date-MiA3-${{ inputs.tag }}-${{ github.sha }}"
               cd "$BOOT_FOLDER"
               mkdir release
               cp -r $PWD/$ak_folder_name/* $PWD/release
