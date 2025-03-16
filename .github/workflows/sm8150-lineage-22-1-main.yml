@@ -141,7 +141,7 @@
          path: ~/.ccache
          key: ${{ inputs.android_version }}-${{ inputs.tag }}-ccache-${{ github.sha }}
          restore-keys: |
-      ${{ inputs.tag }}-ccache-
+          ${{ inputs.tag }}-ccache-
 
       - name: Clone kernel source and repositories
         id: kernel
