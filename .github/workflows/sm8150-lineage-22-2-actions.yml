@@ -40,7 +40,7 @@ jobs:
           echo "tag=[SM8150-LOS-22.2]" >> $GITHUB_OUTPUT
 
   ksunextsusfs:
-    uses: ./.github/workflows/sm8150-lineage-22-2-ksunextsusfs.yml
+    uses: ./.github/workflows/ksunextsusfs.yml
     needs: set-env
     secrets: inherit
     with:
@@ -55,7 +55,7 @@ jobs:
       ksu_branch: ${{ inputs.ksu_branch }}
       ksu_sus_b: ${{ inputs.ksu_sus_b }}
   main:
-    uses: ./.github/workflows/sm8150-lineage-22-2-main.yml
+    uses: ./.github/workflows/main.yml
     needs: set-env
     secrets: inherit
     with:
@@ -70,7 +70,7 @@ jobs:
       ksu_branch: ${{ inputs.ksu_branch }}
       ksu_sus_b: ${{ inputs.ksu_sus_b }}
   ksunext:
-    uses: ./.github/workflows/sm8150-lineage-22-2-ksunext.yml
+    uses: ./.github/workflows/ksunext.yml
     needs: set-env
     secrets: inherit
     with:
