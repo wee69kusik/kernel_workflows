@@ -287,11 +287,12 @@
               # Clone into an absolute path under the boot folder
               git clone --recursive --depth=1 "${{ inputs.anykernel_url }}" -b "${{ inputs.anykernel_branch }}" "$BOOT_FOLDER/$ak_folder_name"
 
-              if [ -e "$BOOT_FOLDER/Image.gz" ]; then
-                cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/$ak_folder_name"
-              fi
               if [ -e "$BOOT_FOLDER/Image.gz-dtb" ]; then
                 cp -f "$BOOT_FOLDER/Image.gz-dtb" "$BOOT_FOLDER/$ak_folder_name"
+              else
+               if [ -e "$BOOT_FOLDER/Image.gz" ]; then
+                 cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/$ak_folder_name"
+               fi
               fi
               if [ -e "$BOOT_FOLDER/dtbo.img" ]; then
                 cp -f "$BOOT_FOLDER/dtbo.img" "$BOOT_FOLDER/$ak_folder_name"
@@ -302,6 +303,7 @@
               mkdir release
               cp -r $PWD/$ak_folder_name/* $PWD/release
               rm -rf $PWD/release/*.git*
+              rm -rf $PWD/$ak_folder_name/*
               echo $(ls)
               echo "$zip_output_var=$zip_name" >> $GITHUB_OUTPUT
               echo $PWD
