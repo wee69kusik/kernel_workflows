@@ -58,3 +58,12 @@ jobs:
       ksu_url: ${{ needs.set-env.outputs.ksu_url }}
       ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
       ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
+
+  snowflake-noname:
+    uses: ./.github/workflows/snowflake-actions.yml
+    needs: set-env
+    secrets: inherit
+    with:
+      ksu_url: ${{ needs.set-env.outputs.ksu_url }}
+      ksu_branch: ${{ needs.set-env.outputs.ksu_branch }}
+      ksu_sus_b: ${{ needs.set-env.outputs.ksu_sus_b }}
