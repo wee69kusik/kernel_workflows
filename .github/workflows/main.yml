@@ -40,6 +40,17 @@
     permissions:
       contents: write
     steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        with:
+          root-reserve-mb: 8192
+          temp-reserve-mb: 2048
+          swap-size-mb: 8192
+          remove-dotnet: "true"
+          remove-android: "true"
+          remove-haskell: "true"
+          remove-codeql: "true"
+
       - name: Display User Inputs
         run: |
           echo "::group::User Environment Variables"
@@ -242,8 +253,11 @@
           # echo "Applying fix_susfs_rejects.patch..."
           # patch -p1 -F 3 -N < "$KERNEL_FOLDER/fix_susfs_rejects.patch" || true
           # echo "--- Remaining patches applied ---"
-
+           echo "Applying fix_lto.patch..."
+           patch -p1 < "$WORKSPACE_FOLDER/kernel_patches/fix_lto.patch" || true
            sed -i 's/-dirty//' ./scripts/setlocalversion
+           sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
+           echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
 
       - name: Building kernel
         id: build
@@ -266,7 +280,7 @@
 
           # Use an absolute output directory for the build (e.g., $KERNEL_FOLDER/out)
           make O="$KERNEL_FOLDER/out" ARCH=arm64 vendor/laurel_sprout-perf_defconfig V=1
-          make O="$KERNEL_FOLDER/out" CC="ccache clang" LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
+          make O="$KERNEL_FOLDER/out" CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
 
           BUILD_END_TIME=$(date +%s)
           BUILD_ELAPSED_TIME=$((BUILD_END_TIME - BUILD_START_TIME))
