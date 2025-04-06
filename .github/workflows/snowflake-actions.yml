@@ -31,16 +31,16 @@ jobs:
       - name: Set env variables
         id: env
         run: |
-          echo "kernel_url=https://github.com/TheSillyOk/android_kernel_qcom_sm8150" >> $GITHUB_OUTPUT
-          echo "kernel_branch=lineage-22.1" >> $GITHUB_OUTPUT
+          echo "kernel_url=https://github.com/liquidprjkt/snowflake_laurel_sprout" >> $GITHUB_OUTPUT
+          echo "kernel_branch=snowflake_noname" >> $GITHUB_OUTPUT
           echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
-          echo "patches_branch=new" >> $GITHUB_OUTPUT
+          echo "patches_branch=master" >> $GITHUB_OUTPUT
           echo "anykernel_url=https://github.com/TheSillyOk/anykernel" >> $GITHUB_OUTPUT
           echo "anykernel_branch=master" >> $GITHUB_OUTPUT
-          echo "tag=[SM8150-LOS-22.1]" >> $GITHUB_OUTPUT
+          echo "tag=[Snowflake]" >> $GITHUB_OUTPUT
 
   ksunextsusfs:
-    uses: ./.github/workflows/sm8150-lineage-22-1-ksunextsusfs.yml
+    uses: ./.github/workflows/ksunextsusfs.yml
     needs: set-env
     secrets: inherit
     with:
@@ -55,7 +55,7 @@ jobs:
       ksu_branch: ${{ inputs.ksu_branch }}
       ksu_sus_b: ${{ inputs.ksu_sus_b }}
   main:
-    uses: ./.github/workflows/sm8150-lineage-22-1-main.yml
+    uses: ./.github/workflows/main.yml
     needs: set-env
     secrets: inherit
     with:
@@ -70,7 +70,7 @@ jobs:
       ksu_branch: ${{ inputs.ksu_branch }}
       ksu_sus_b: ${{ inputs.ksu_sus_b }}
   ksunext:
-    uses: ./.github/workflows/sm8150-lineage-22-1-ksunext.yml
+    uses: ./.github/workflows/ksunext.yml
     needs: set-env
     secrets: inherit
     with:

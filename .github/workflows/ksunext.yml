@@ -33,7 +33,6 @@
      ksu_sus_b:
       type: string
       required: true
-
  jobs:
   build:
     if: github.event.repository.owner.id == github.event.sender.id
@@ -127,14 +126,21 @@
         if: steps.cache-clang.outputs.cache-hit != 'true'
         run: echo "Clang was downloaded and extracted!"
 
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1.2
+      - name: Set up ccache
+        run: |
+         mkdir -p ~/.cache/bazel
+         ccache --version
+         ccache --max-size=2G
+         ccache --set-config=compression=true
+         echo "CCACHE_DIR=$HOME/.ccache" >> $GITHUB_ENV
+
+      - name: Restore ccache from cache
+        uses: actions/cache@v4
         with:
-          max-size: 7G
-      #- name: Python2
-      #  uses: actions/setup-python@v5
-      #  with:
-      #    python-version: '2.7'
+         path: ~/.ccache
+         key: ${{ inputs.android_version }}-${{ inputs.tag }}-ccache-${{ github.sha }}
+         restore-keys: |
+          ${{ inputs.tag }}-ccache-
 
       - name: Clone kernel source and repositories
         id: kernel
@@ -230,6 +236,7 @@
 
           # Append configuration settings to the defconfig file (using its absolute path)
            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/laurel_sprout-perf_defconfig && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
+           sed -i 's/-dirty//' ./scripts/setlocalversion
 
       - name: Building kernel
         id: build
@@ -289,16 +296,21 @@
 
               if [ -e "$BOOT_FOLDER/Image.gz-dtb" ]; then
                 cp -f "$BOOT_FOLDER/Image.gz-dtb" "$BOOT_FOLDER/$ak_folder_name"
+              else
+               if [ -e "$BOOT_FOLDER/Image.gz" ]; then
+                 cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/$ak_folder_name"
+               fi
               fi
               if [ -e "$BOOT_FOLDER/dtbo.img" ]; then
                 cp -f "$BOOT_FOLDER/dtbo.img" "$BOOT_FOLDER/$ak_folder_name"
               fi
               local date="$(date +"%d%m%Y")"
-              local zip_name="$date-MiA3-[KSUNext]-${{ inputs.tag }}"
+              local zip_name="$date-MiA3-[KSUNext]-${{ inputs.tag }}-${{ github.run_number }}"
               cd "$BOOT_FOLDER"
               mkdir release
               cp -r $PWD/$ak_folder_name/* $PWD/release
               rm -rf $PWD/release/*.git*
+              rm -rf $PWD/$ak_folder_name/*
               echo $(ls)
               echo "$zip_output_var=$zip_name" >> $GITHUB_OUTPUT
               echo $PWD
