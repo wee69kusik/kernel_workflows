@@ -6,3 +6,6 @@
 
 ## SM8150:
  - [LOS 22.2](https://github.com/TheSillyOk/android_kernel_qcom_sm8150/tree/lineage-22.2-staging) • [Based on](https://github.com/Skyblueborb/android_kernel_qcom_sm8150/tree/lineage-22.2-staging) • NON-RDP
+
+## Snowflake:
+ - [Snowflake](https://github.com/liquidprjkt/snowflake_laurel_sprout) [Based on](https://github.com/liquidprjkt/snowflake_laurel_sprout) • NON-RDP
