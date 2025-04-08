@@ -1,6 +1,5 @@
  name: Kernel Build (KSUNext)
  on:
-  pull_request:
   workflow_call:
     inputs:
      kernel_url:

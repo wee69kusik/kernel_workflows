@@ -1,10 +1,11 @@
-name: Actions (Build Kernel)
+name: Start CI actions
 
 permissions:
   contents: write  # Allow writing to repository contents (for pushing tags)
   actions: write   # Allows triggering actions
   
 on:
+  pull_request:
   push:
   workflow_dispatch:
 
