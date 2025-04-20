@@ -31,7 +31,7 @@ jobs:
       - name: Set env variables
         id: env
         run: |
-          echo "kernel_url=https://github.com/TheSillyOk/android_kernel_qcom_sm6125" >> $GITHUB_OUTPUT
+          echo "kernel_url=https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125" >> $GITHUB_OUTPUT
           echo "kernel_branch=lineage-22.2-common" >> $GITHUB_OUTPUT
           echo "patches_url=https://github.com/TheSillyOk/kernel_ls_patches" >> $GITHUB_OUTPUT
           echo "patches_branch=new" >> $GITHUB_OUTPUT

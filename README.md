@@ -5,7 +5,7 @@
  - [VIC](https://github.com/TheSillyOk/kernel_laurel_sprout/commits/vic) • [Based on](https://github.com/Mi-A3-laurel-sprout/kernel_xiaomi_XD/tree/vic) • RDP
 
 ## SM6125:
- - [LOS 22.2](https://github.com/TheSillyOk/android_kernel_qcom_sm6125/tree/lineage-22.2-common) • [Based on](https://github.com/Skyblueborb/android_kernel_qcom_sm6125/tree/lineage-22.2-common) • NON-RDP
+ - [LOS 22.2](https://github.com/TheSillyOk/android_kernel_xiaomi_sm6125/tree/lineage-22.2-common) • [Based on](https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125/tree/lineage-22.2-common) • NON-RDP
 
 ## Snowflake:
  - [Snowflake](https://github.com/liquidprjkt/snowflake_laurel_sprout) [Based on](https://github.com/liquidprjkt/snowflake_laurel_sprout) • NON-RDP
