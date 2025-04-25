@@ -1,0 +1,113 @@
+name: Start CI actions
+
+permissions:
+  contents: write  # Allow writing to repository contents (for pushing tags)
+  actions: write   # Allows triggering actions
+  
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+jobs:
+     var:
+      runs-on: ubuntu-latest
+      outputs:
+       ksu_url: "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh"
+       ksu_branch: "next"
+       ksu_sus_b: "next-susfs-dev"
+      steps:
+       - name: Hello World
+         run: |
+          echo "Hello World!"
+
+     sm6125-lineage-22-2:
+      uses: ./.github/workflows/actions.yml
+      needs: var
+      secrets: inherit
+      with:
+       kernel_url: "https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125"
+       kernel_branch: "lineage-22.2-common"
+       patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
+       patches_branch: "new"
+       anykernel_url: "https://github.com/TheSillyOk/anykernel"
+       anykernel_branch: "master"
+       tag: "[SM6125-LOS-22.2]"
+       ksu_url: ${{ needs.var.outputs.ksu_url }}
+       ksu_branch: ${{ needs.var.outputs.ksu_branch }}
+       ksu_sus_b: ${{ needs.var.outputs.ksu_sus_b }}
+       defconfig: "vendor/trinket-perf_defconfig"
+       config: "vendor/laurel_sprout.config"
+
+     snowflake:
+      uses: ./.github/workflows/actions.yml
+      needs: var
+      secrets: inherit
+      with:
+       kernel_url: "https://github.com/liquidprjkt/snowflake_laurel_sprout"
+       kernel_branch: "snowflake_noname"
+       patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
+       patches_branch: "master"
+       anykernel_url: "https://github.com/TheSillyOk/anykernel"
+       anykernel_branch: "master"
+       tag: "[Snowflake]"
+       ksu_url: ${{ needs.var.outputs.ksu_url }}
+       ksu_branch: ${{ needs.var.outputs.ksu_branch }}
+       ksu_sus_b: ${{ needs.var.outputs.ksu_sus_b }}
+       defconfig: "vendor/laurel_sprout-perf_defconfig"
+       config: ""
+
+     noname-lineage-22-1:
+      uses: ./.github/workflows/actions.yml
+      needs: var
+      secrets: inherit
+      with:
+       kernel_url: "https://github.com/TheSillyOk/kernel_xiaomi_laurel_sprout-noname"
+       kernel_branch: "heresy"
+       patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
+       patches_branch: "master"
+       anykernel_url: "https://github.com/TheSillyOk/anykernel"
+       anykernel_branch: "master"
+       tag: "[NoName-LOS-22.1]"
+       ksu_url: ${{ needs.var.outputs.ksu_url }}
+       ksu_branch: ${{ needs.var.outputs.ksu_branch }}
+       ksu_sus_b: ${{ needs.var.outputs.ksu_sus_b }}
+       defconfig: "vendor/laurel_sprout-perf_defconfig"
+       config: ""
+
+     noname-lineage-18-1:
+       uses: ./.github/workflows/actions.yml
+       needs: var
+       secrets: inherit
+       with:
+        kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout"
+        kernel_branch: "lineage-18.1"
+        patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
+        patches_branch: "master"
+        anykernel_url: "https://github.com/TheSillyOk/anykernel"
+        anykernel_branch: "master"
+        tag: "[NoName-LOS-18.1]"
+        ksu_url: ${{ needs.var.outputs.ksu_url }}
+        ksu_branch: ${{ needs.var.outputs.ksu_branch }}
+        ksu_sus_b: ${{ needs.var.outputs.ksu_sus_b }}
+        defconfig: "vendor/laurel_sprout-perf_defconfig"
+        config: ""
+
+     noname-vic:
+      uses: ./.github/workflows/actions.yml
+      needs: var
+      secrets: inherit
+      with:
+       kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout"
+       kernel_branch: "vic"
+       patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
+       patches_branch: "master"
+       anykernel_url: "https://github.com/TheSillyOk/anykernel"
+       anykernel_branch: "master"
+       tag: "[NoName-VIC]"
+       ksu_url: ${{ needs.var.outputs.ksu_url }}
+       ksu_branch: ${{ needs.var.outputs.ksu_branch }}
+       ksu_sus_b: ${{ needs.var.outputs.ksu_sus_b }}
+       defconfig: "vendor/laurel_sprout-perf_defconfig"
+       config: ""
+

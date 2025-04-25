@@ -35,6 +35,12 @@
      build_type:
       type: string
       required: true
+     defconfig:
+      type: string
+      required: true
+     config:
+      type: string
+      required: false
  jobs:
   build:
     if: github.event.repository.owner.id == github.event.sender.id
@@ -52,18 +58,6 @@
           remove-android: "true"
           remove-haskell: "true"
           remove-codeql: "true"
-
-      - name: Display User Inputs
-        run: |
-          echo "::group::User Environment Variables"
-          echo "Kernel Tree: ${{ inputs.kernel_url }}/tree/${{ inputs.kernel_branch }}"
-          echo "AnyKernel Url: ${{ inputs.anykernel_url }}/tree/${{ inputs.anykernel_branch }}"
-          echo "::endgroup::"
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "build"
-          git config --global user.email "3436378798@qq.com"
 
       - name: Initialize workspace and tools
         id: workspace
@@ -100,7 +94,7 @@
             ccache \
             llvm-dev
 
-          sudo apt install flex libncurses6
+          sudo apt install libncurses6 libfdt-dev
           # Also output a tools folder variable (same as workspace here)
           echo "tools-folder=$WORKSPACE_FOLDER" >> $GITHUB_OUTPUT
 
@@ -184,13 +178,8 @@
           echo "Applying fix_lto.patch..."
            patch -p1 < "$WORKSPACE_FOLDER/kernel_patches/fix_lto.patch" || true
            sed -i 's/-dirty//' ./scripts/setlocalversion
-           if [ -e "$KERNEL_FOLDER/arch/arm64/configs/vendor/laurel_sprout-perf_defconfig" ]; then
-            sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
-            echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
-           else
-            sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/trinket-perf_defconfig
-            echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> arch/arm64/configs/vendor/trinket-perf_defconfig
-           fi
+            sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ inputs.defconfig }}"
+            echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> "arch/arm64/configs/${{ inputs.defconfig }}"
 
       - name: Apply KernelSU
         if: ${{ inputs.ksu_url != 'false' }}
@@ -220,11 +209,7 @@
           echo "--- KernelSU-Next setup complete ---"
 
           # Append configuration settings to the defconfig file (using its absolute path)
-           if [ -e "$KERNEL_FOLDER/arch/arm64/configs/vendor/laurel_sprout-perf_defconfig" ]; then
-            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/laurel_sprout-perf_defconfig && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_KSU_SUSFS=y\nCONFIG_TMPFS_XATTR=y" >> arch/arm64/configs/vendor/laurel_sprout-perf_defconfig
-           else
-            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' arch/arm64/configs/vendor/trinket-perf_defconfig && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_KSU_SUSFS=y\nCONFIG_TMPFS_XATTR=y" >> arch/arm64/configs/vendor/trinket-perf_defconfig
-           fi
+            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ inputs.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_KSU_SUSFS=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/${{ inputs.defconfig }}"
 
       - name: Apply SUSFS
         if: ${{ inputs.susfs != 'false' }}
@@ -294,13 +279,6 @@
            patch -p1 -F 3 -N < "$KERNEL_FOLDER/69_hide_stuff.patch" || true
            echo "Current working directory (Kernel Root) AFTER SUSFS patches: $(pwd)"
            echo "--- SUSFS and Hide Stuff Patches applied ---"
-  
-          # Commit changes in common directory using absolute paths
-          cd "$KERNEL_FOLDER/common"
-          git add -A && git commit -a -m "BUILD Kernel" || true
-          cd "$KERNEL_FOLDER"
-          git add -A && git commit -a -m "BUILD Kernel" || true
-          git rm --cached KernelSU-Next
 
            # Apply remaining patches (if needed, currently commented out)
            echo "--- Applying remaining patches (Kernel Root dir) ---"
@@ -318,7 +296,24 @@
           # Use absolute paths for the kernel folder and tools folder
           KERNEL_FOLDER="${{ steps.kernel.outputs.kernel-folder }}"
           TOOLS_FOLDER="${{ steps.workspace.outputs.tools-folder }}"
-          BUILD_START_TIME=$(date +%s)
+          cd $KERNEL_FOLDER
+          if [ -z "${{ inputs.config }}" ]; then
+           CONFIG_FILE="${{ inputs.defconfig }}"
+          else
+           CONFIG_FILE="${{ inputs.defconfig }} ${{ inputs.config }}"
+          fi
+          echo "make O="$KERNEL_FOLDER/out" ARCH=arm64 $CONFIG_FILE"
+          if [[ "${{ inputs.tag }}" == *"SM6125"* ]]; then
+           EXTRA=" DTC_PREBUILT=true DTC=$KERNEL_FOLDER/linux-x86/dtc/dtc DTC_OVERLAY_TEST_EXT=$KERNEL_FOLDER/linux-x86/libufdt/ufdt_apply_overlay MKDTIMG=$KERNEL_FOLDER/linux-86/libufdt/mkdtimg"
+           wget https://android.googlesource.com/platform/prebuilts/misc/+archive/847dbab7980efcc7f5706bb9c6d844b91a680afd.tar.gz -O androd.tar.gz
+           tar -xzf androd.tar.gz
+           git clone https://github.com/TheSillyOk/kernel_extra -b main extra
+           rm linux-x86/dtc/dtc && mv extra/dtc linux-x86/dtc/dtc
+           chmod +x linux-x86/dtc/dtc
+          else
+           EXTRA=""
+          fi
+          ls
           echo "Building kernel using absolute paths..."
           export CCACHE_EXEC=$(which ccache)
           export ARCH=arm64
@@ -326,30 +321,19 @@
           export KBUILD_BUILD_USER="Ok"
           export KBUILD_BUILD_HOST="Github"
           export PATH="$TOOLS_FOLDER/clang/bin:$PATH"
-
+          BUILD_START_TIME=$(date +%s)
           # Create artifacts folder using an absolute path
           mkdir -p "$KERNEL_FOLDER/artifacts"
 
           # Use an absolute output directory for the build (e.g., $KERNEL_FOLDER/out)
-          if [ -e "$KERNEL_FOLDER/arch/arm64/configs/vendor/laurel_sprout-perf_defconfig" ]; then
-           make O="$KERNEL_FOLDER/out" ARCH=arm64 vendor/laurel_sprout-perf_defconfig V=1
-          else
-           make O="$KERNEL_FOLDER/out" ARCH=arm64 vendor/trinket-perf_defconfig vendor/laurel_sprout.config V=1
-          fi
-          make O="$KERNEL_FOLDER/out" CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
+
+           make O="$KERNEL_FOLDER/out" ARCH=arm64 $CONFIG_FILE
+          make O="$KERNEL_FOLDER/out"$EXTRA CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
 
           BUILD_END_TIME=$(date +%s)
           DIFF=$((BUILD_END_TIME - BUILD_START_TIME))
           echo "elapsed_time=$DIFF" >> $GITHUB_OUTPUT
           echo -e "Build completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds."
-
-        working-directory: ${{ steps.kernel.outputs.kernel-folder }}
-
-#      - name: Upload artifacts
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: build-artifacts
-#          path: ${{ steps.kernel.outputs.kernel-folder }}/artifacts/
 
       - name: Handle AnyKernel3 zips
         id: anykernel
@@ -392,7 +376,6 @@
               echo $PWD
            }
           handle_anykernel "https://github.com/TheSillyOk/anykernel" "master" "a" "anykernel_zipname"
-#          handle_anykernel "https://github.com/TheSillyOk/anykernel" "master" "b" "second_anykernel_zipname"
           
 #      - name: Upload to Release
 #        uses: softprops/action-gh-release@v2
