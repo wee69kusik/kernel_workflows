@@ -31,7 +31,7 @@ jobs:
        patches_url: "https://github.com/TheSillyOk/kernel_ls_patches"
        patches_branch: "new"
        anykernel_url: "https://github.com/TheSillyOk/anykernel"
-       anykernel_branch: "master"
+       anykernel_branch: "sm6125"
        tag: "[SM6125-LOS-22.2]"
        ksu_url: ${{ needs.var.outputs.ksu_url }}
        ksu_branch: ${{ needs.var.outputs.ksu_branch }}
