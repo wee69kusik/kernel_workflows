@@ -226,7 +226,7 @@
            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/$DEFCONFIG" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/$DEFCONFIG"
 
       - name: Apply SUSFS
-        if: ${{ matrix.susfs != 'false' }}
+        if: ${{ matrix.susfs }}
         id: susfs
         run: |
           set -e
