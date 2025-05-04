@@ -8,41 +8,40 @@
     if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-latest
     strategy:
+     fail-fast: false
      matrix:
       kernel_config:
        - kernel_name: "SM6125"
          kernel_url: "https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125"
          kernel_branch: "lineage-22.2-common"
-         patches_branch: "new"
          anykernel_branch: "sm6125"
          tag: "[SM6125-LOS-22.2]"
          defconfig: "vendor/trinket-perf_defconfig"
          config: "vendor/laurel_sprout.config"
+         patches_folder: "sm6125"
+
        - kernel_name: "Snowflake"
          kernel_url: "https://github.com/liquidprjkt/snowflake_laurel_sprout"
          kernel_branch: "snowflake_noname"
          tag: "[Snowflake]"
          defconfig: "vendor/laurel_sprout-perf_defconfig"
-         config: ""
+
        - kernel_name: "NoName-LOS-22.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_xiaomi_laurel_sprout-noname"
          kernel_branch: "heresy"
          tag: "[NoName-LOS-22.1]"
-         defconfig: "vendor/laurel_sprout-perf_defconfig"
-         config: ""
+
        - kernel_name: "NoName-LOS-18.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "lineage-18.1"
          tag: "[NoName-LOS-18.1]"
-         defconfig: "vendor/laurel_sprout-perf_defconfig"
-         config: ""
+
        - kernel_name: "NoName-VIC"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "vic"
          tag: "[NoName-VIC]"
-         defconfig: "vendor/laurel_sprout-perf_defconfig"
-         config: ""
-      build_type: ["Normal", "KSUN"]
+
+      build_type: ["Normal", "KSU", "KSUN", "RKSU"]
       susfs: [false, true]
       exclude:
            - build_type: "Normal"
@@ -50,6 +49,44 @@
     permissions:
       contents: write
     steps:
+      - name: Output configs
+        id: variable
+        run: |
+
+          set_config() {
+            local name="$1"
+            local default_value="$2"
+            local value="$3"
+            
+            ENV_NAME=$name
+
+            if [[ "$name" == *"branch"* && "$value" == *"-b " ]]; then
+              echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
+              echo "-> Set $name value to \"$default_value\""
+            else
+             if [ -z "$value" ]; then
+              echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
+              echo "-> Set $name value to \"$default_value\""
+             else
+               echo "$ENV_NAME=$value" >> $GITHUB_ENV
+               echo "-> Set $name value to \"$value\""
+             fi
+            fi
+          }
+
+          set_config "defconfig" "vendor/laurel_sprout-perf_defconfig" "${{ matrix.kernel_config.defconfig }}"
+          set_config "config" "${{ matrix.kernel_config.config }}"
+
+          set_config "patches_url" "https://github.com/TheSillyOk/kernel_ls_patches" "${{ matrix.kernel_config.patches_url }}"
+          set_config "patches_branch" "" " -b ${{ matrix.kernel_config.patches_branch }}"
+          set_config "patches_folder" "noname" "${{ matrix.kernel_config.patches_folder }}"
+
+          set_config "anykernel_url" "https://github.com/TheSillyOk/anykernel" "${{ matrix.kernel_config.anykernel_url }}"
+          set_config "anykernel_branch" "" " -b ${{ matrix.kernel_config.anykernel_branch }}"
+
+          set_config "kernel_branch" "" " -b ${{ matrix.kernel_config.kernel_branch }}"
+
+
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
@@ -139,35 +176,14 @@
         run: |
           set -e
  
-          # Use the absolute workspace folder
           WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
-          # Clone the kernel tree into an absolute path
-          if [ -z "${{ matrix.kernel_config.kernel_branch }}" ]; then
-           KERNEL_BRANCH=""
-          else
-           KERNEL_BRANCH=" -b ${{ matrix.kernel_config.kernel_branch }}"
-          fi
 
-          git clone --depth=1 "${{ matrix.kernel_config.kernel_url }}"$KERNEL_BRANCH "$WORKSPACE_FOLDER/kernel_tree"
+          git clone --depth=1 "${{ matrix.kernel_config.kernel_url }}"${{ env.kernel_branch }} "$WORKSPACE_FOLDER/kernel_tree"
           echo "kernel-folder=$WORKSPACE_FOLDER/kernel_tree" >> $GITHUB_OUTPUT
           KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
           cd "$KERNEL_FOLDER"
 
-          # Clone additional repositories
-
-          if [ -z "${{ matrix.kernel_config.patches_url }}" ]; then
-           PATCHES_URL="https://github.com/TheSillyOk/kernel_ls_patches"
-          else
-           PATCHES_URL="${{ matrix.kernel_config.patches_url }}"
-          fi
-
-          if [ -z "${{ matrix.kernel_config.patches_branch }}" ]; then
-           PATCHES_BRANCH=""
-          else
-           PATCHES_BRANCH=" -b ${{ matrix.kernel_config.patches_branch }}"
-          fi
-
-          git clone "$PATCHES_URL"$PATCHES_BRANCH "$WORKSPACE_FOLDER/kernel_patches"
+          git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$WORKSPACE_FOLDER/kernel_patches"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
           mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
 
@@ -179,13 +195,7 @@
 
            sed -i 's/-dirty//' ./scripts/setlocalversion
 
-           if [ -z "${{ matrix.kernel_config.defconfig }}" ]; then
-            DEFCONFIG="vendor/laurel_sprout-perf_defconfig"
-           else
-            DEFCONFIG="${{ matrix.kernel_config.defconfig }}"
-           fi
-
-           sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/$DEFCONFIG" && echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> "arch/arm64/configs/$DEFCONFIG"
+           sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> "arch/arm64/configs/${{ env.defconfig }}"
 
       - name: Apply KernelSU
         if: ${{ matrix.build_type != 'Normal' }}
@@ -198,32 +208,49 @@
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
           cd "$KERNEL_FOLDER"
           
-          cp $KERNEL_PATCHES_FOLDER/manual_hooks.patch $KERNEL_FOLDER
           echo "Applying manual_hooks.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_FOLDER/manual_hooks.patch" || true
+          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/manual_hooks.patch" || true
 
           echo "--- Setting up KernelSU: ${{ matrix.build_type }} ---"
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
+           KSU-*)
+            curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+            cd KernelSU
+           ;;
            KSUN-false)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+            cd KernelSU-Next
            ;;
            KSUN-true)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs-dev
+            cd KernelSU-Next
+           ;;
+           RKSU-false)
+            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+            cd KernelSU
+           ;;
+           RKSU-true)
+            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-v1.5.7
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+            cd KernelSU
            ;;
            *)
             echo "Invalid selection for build_type and/or susfs: ${{ matrix.build_type }}-${{ matrix.susfs }}"
            ;;
           esac
-          echo "--- KernelSU setup complete ---"
-
-           if [ -z "${{ matrix.kernel_config.defconfig }}" ]; then
-            DEFCONFIG="vendor/laurel_sprout-perf_defconfig"
-           else
-            DEFCONFIG="${{ matrix.kernel_config.defconfig }}"
-           fi
+          echo "--- ${{ matrix.build_type }} setup complete ---"
+           cd $KERNEL_FOLDER
 
           # Append configuration settings to the defconfig file
-           sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/$DEFCONFIG" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/$DEFCONFIG"
+           sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/${{ env.defconfig }}"
 
       - name: Apply SUSFS
         if: ${{ matrix.susfs }}
@@ -239,34 +266,40 @@
 
           SUSFS4KSU_PATCHES_FOLDER="$WORKSPACE_FOLDER/susfs4ksu/kernel_patches"
 
-          cp $SUSFS4KSU_PATCHES_FOLDER/fs/susfs.c $KERNEL_FOLDER/fs/
-          cp $SUSFS4KSU_PATCHES_FOLDER/include/linux/susfs.h $KERNEL_FOLDER/include/linux
-          cp $SUSFS4KSU_PATCHES_FOLDER/include/linux/susfs_def.h $KERNEL_FOLDER/include/linux
+          cp -r $SUSFS4KSU_PATCHES_FOLDER/fs/* $KERNEL_FOLDER/fs/
+          cp -r $SUSFS4KSU_PATCHES_FOLDER/include/linux/* $KERNEL_FOLDER/include/linux
 
           cd "$KERNEL_FOLDER"
           echo "--- Applying SUSFS and Hide Stuff Patches ---"
 
-          echo "Applying 50_add_susfs.patch..."
+          echo "--- Applying 50_add_susfs.patch... ---"
           patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_kernel-4.14.patch" || true
 
-          echo "Applying fix_susfs_rejects.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/fix_susfs_rejects.patch" || true
+          echo "--- Applying fix_susfs_rejects.patch... ---"
+          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
 
           echo "Applying 69_hide_stuff.patch..."
           patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/69_hide_stuff.patch" || true
 
-          if [ "${{ matrix.build_type }}" == "KSUN" ]; then
-           echo "Applying BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch" || true
-          fi
+          echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
+          case "${{ matrix.build_type }}" in
+            KSU)        
+             cd KernelSU
+             patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/KernelSU/10_enable_susfs_for_ksu.patch"
+            ;;
+            RKSU)
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
+            ;;
+            KSUN)
+              echo "--- Applying BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch... ---"
+              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
+          esac
+          echo "--- Additional ${{ matrix.build_type }} patches applied ---"
+          cd $KERNEL_FOLDER
+
 
           echo "--- SUSFS and Hide Stuff Patches applied ---"
-          if [ -z "${{ matrix.kernel_config.defconfig }}" ]; then
-            DEFCONFIG="vendor/laurel_sprout-perf_defconfig"
-          else
-           DEFCONFIG="${{ matrix.kernel_config.defconfig }}"
-          fi
-          echo -e "\nCONFIG_KSU_SUSFS=y" >> "arch/arm64/configs/$DEFCONFIG"
+          echo -e "\nCONFIG_KSU_SUSFS=y" >> "arch/arm64/configs/${{ env.defconfig }}"
 
 
       - name: Building kernel
@@ -277,18 +310,6 @@
           KERNEL_FOLDER="${{ steps.kernel.outputs.kernel-folder }}"
           TOOLS_FOLDER="${{ steps.workspace.outputs.tools-folder }}"
           cd $KERNEL_FOLDER
-
-          if [ -z "${{ matrix.kernel_config.defconfig }}" ]; then
-           DEFCONFIG="vendor/laurel_sprout-perf_defconfig"
-          else
-           DEFCONFIG="${{ matrix.kernel_config.defconfig }}"
-          fi
-
-          if [ -z "${{ matrix.kernel_config.config }}" ]; then
-           CONFIG_FILE="$DEFCONFIG"
-          else
-           CONFIG_FILE="$DEFCONFIG ${{ matrix.kernel_config.config }}"
-          fi
 
           if [[ "${{ matrix.kernel_config.tag }}" == *"SM6125"* ]]; then
            EXTRA=" DTC_PREBUILT=true DTC=$KERNEL_FOLDER/dtc/dtc DTC_OVERLAY_TEST_EXT=$KERNEL_FOLDER/libufdt/ufdt_apply_overlay MKDTIMG=$KERNEL_FOLDER/libufdt/mkdtimg"
@@ -312,7 +333,7 @@
 
           mkdir -p "$KERNEL_FOLDER/artifacts"
 
-          make O="$KERNEL_FOLDER/out" ARCH=arm64 $CONFIG_FILE
+          make O="$KERNEL_FOLDER/out" ARCH=arm64 ${{ env.defconfig }} ${{ env.config }}
           make O="$KERNEL_FOLDER/out"$EXTRA CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
 
           BUILD_END_TIME=$(date +%s)
@@ -334,19 +355,7 @@
           BOOT_FOLDER="$KERNEL_FOLDER/out/arch/arm64/boot"
           cd "$BOOT_FOLDER"
 
-          if [ -z "${{ matrix.kernel_config.anykernel_url }}" ]; then
-           AK_URL="https://github.com/TheSillyOk/anykernel"
-          else
-           AK_URL="${{ matrix.kernel_config.anykernel_url }}"
-          fi
-
-          if [ -z "${{ matrix.kernel_config.anykernel_branch }}" ]; then
-           AK_BRANCH=""
-          else
-           AK_BRANCH=" -b ${{ matrix.kernel_config.anykernel_branch }}"
-          fi
-
-          git clone --recursive --depth=1 "$AK_URL"$AK_BRANCH "$BOOT_FOLDER/ak_folder"
+          git clone --recursive --depth=1 "${{ env.anykernel_url }}"${{ env.anykernel_branch }} "$BOOT_FOLDER/ak_folder"
 
           if [ -e "$BOOT_FOLDER/Image.gz-dtb" ]; then
             cp -f "$BOOT_FOLDER/Image.gz-dtb" "$BOOT_FOLDER/ak_folder"
@@ -368,6 +377,18 @@
            ;;
            KSUN-true)
             BUILD="-[KSUNext-SUSFS]"
+           ;;
+           KSU-false)
+            BUILD="-[KSU]"
+           ;;
+           KSU-true)
+            BUILD="-[KSU-SUSFS]"
+           ;;
+           RKSU-false)
+            BUILD="-[RKSU]"
+           ;;
+           RKSU-true)
+            BUILD="-[RKSU-SUSFS]"
            ;;
            Normal*)
             BUILD=""
