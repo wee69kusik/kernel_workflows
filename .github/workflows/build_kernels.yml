@@ -506,8 +506,3 @@
         run: |
           cd downloaded-artifacts
           bash ../sh/upload-assets.sh "${{ github.ref_name }}"
-
-      - name: Display Files Uploaded
-        run: |
-          echo "GitHub release created with the following files:"
-          ls ../downloaded-artifacts
