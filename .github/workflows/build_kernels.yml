@@ -455,6 +455,9 @@
           date="$(date +"%d/%m/%Y")"
           echo "date=$date" >> $GITHUB_ENV
 
+          echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+          echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}"
+
           git clone https://github.com/TheSillyOk/sh
           cp sh/extract_ksuver.sh $PWD
 
@@ -471,6 +474,8 @@
           Updated: ${{ env.date }}
 
           [Updates](https://t.me/ok_kernel) • [Support](https://t.me/ok_kernel_chat) 
+
+          [Github run](${{ env.run }}) • [Nightly run](${{ env.nightly_run }})
 
           SUSFS Module: 
           -> https://github.com/sidex15/ksu_module_susfs/releases
