@@ -1,6 +1,17 @@
  name: Kernel Build
  on:
   workflow_dispatch:
+    inputs:
+      make_release:
+        description: 'Do you want to create a release?'
+        required: false
+        type: boolean
+        default: false
+      pre_release:
+        description: 'Make it a prerelease?'
+        required: false
+        type: boolean
+        default: true
   workflow_call:
   pull_request:
   push:
@@ -426,7 +437,7 @@
 
   release:
     needs: build
-    if: github.ref_type == 'tag'
+    if: ${{ github.ref_type == 'tag' || inputs.make_release }}
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -504,18 +515,41 @@
           • @aleeeee1 & @PowerX-NOT & @RainySorcerer for kernel sources
           EOF
 
+      - name: Set release tag
+        env:
+         GH_TOKEN: ${{ github.token }}
+        run: |
+
+            git clone https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
+            cd repo
+
+            if [ "${{ github.ref_type }}" != "tag" ]; then
+              TAG=$(date +"%Y/%m/%d")
+              LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+              if [ "$LATEST_TAG" == "$TAG"* ]; then
+                TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
+              fi
+    
+              echo "Created tag: $TAG"
+              echo "TAG=$TAG" >> $GITHUB_ENV
+
+              git tag $TAG
+              git push origin $TAG
+            else
+              echo "TAG=${{ github.ref_name }}"
+            fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          prerelease: ${{ endsWith(github.ref_name, '-PRE') }}
+          tag_name: ${{ env.TAG }}
+          prerelease: ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }}
           files: ""
-          name: ${{ github.ref_name }}
+          name: ${{ env.date }}
           body_path: release_body.md
 
       - name: Upload Release Assets
         env:
          GH_TOKEN: ${{ github.token }}
         run: |
-          cd downloaded-artifacts
-          bash ../sh/upload-assets.sh "${{ github.ref_name }}"
+          bash ../sh/upload-assets.sh "${{ env.TAG }}"
