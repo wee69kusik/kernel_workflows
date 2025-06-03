@@ -16,31 +16,32 @@
          kernel_url: "https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125"
          kernel_branch: "lineage-22.2-common"
          anykernel_branch: "sm6125"
-         tag: "[SM6125-LOS-22.2]"
+         tag: "SM6125-22.2"
          defconfig: "vendor/trinket-perf_defconfig"
          config: "vendor/laurel_sprout.config"
          patches_folder: "sm6125"
+         python3_patch: false
 
        - kernel_name: "Snowflake"
          kernel_url: "https://github.com/liquidprjkt/snowflake_laurel_sprout"
          kernel_branch: "snowflake_noname"
-         tag: "[Snowflake]"
+         tag: "Snowflake"
          defconfig: "vendor/laurel_sprout-perf_defconfig"
 
        - kernel_name: "N22.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_xiaomi_laurel_sprout-noname"
          kernel_branch: "heresy"
-         tag: "[NoName-LOS-22.1]"
+         tag: "NoName-22.1"
 
        - kernel_name: "N18.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "lineage-18.1"
-         tag: "[NoName-LOS-18.1]"
+         tag: "NoName-18.1"
 
        - kernel_name: "N-VIC"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "vic"
-         tag: "[NoName-VIC]"
+         tag: "NoName-VIC"
 
       build_type: ["Normal", "KSU", "KSUN", "RKSU"]
       susfs: [false, true]
@@ -86,6 +87,10 @@
           set_config "anykernel_branch" "" " -b ${{ matrix.kernel_config.anykernel_branch }}"
 
           set_config "kernel_branch" "" " -b ${{ matrix.kernel_config.kernel_branch }}"
+
+          set_config "susfs_branch" "kernel-4.14" "${{ matrix.kernel_config.susfs_branch }}"
+          set_config "device" "MiA3" "${{ matrix.kernel_config.device }}"
+          set_config "python3" true "${{ matrix.kernel_config.python3_patch }}"
 
 
 
@@ -171,7 +176,9 @@
         uses: actions/cache/restore@v4
         with:
          path: ~/.ccache
-         key: ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-
+         key: |
+           ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache
+           ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-
 
       - name: Preparing kernel
         id: kernel
@@ -188,9 +195,10 @@
           git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$WORKSPACE_FOLDER/kernel_patches"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
           mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
-
-           echo "--- Applying python3.patch... ---"
-           patch -p1 -F 3 -N < "$WORKSPACE_FOLDER/kernel_patches/python3.patch" || true
+           if ${{ env.python3 }}; then
+             echo "--- Applying python3.patch... ---"
+             patch -p1 -F 3 -N < "$WORKSPACE_FOLDER/kernel_patches/python3.patch" || true
+           fi
 
            echo "--- Applying fix_lto.patch... ---"
            patch -p1 < "$WORKSPACE_FOLDER/kernel_patches/fix_lto.patch" || true
@@ -264,7 +272,7 @@
           KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
 
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.14 "$WORKSPACE_FOLDER/susfs4ksu"
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$WORKSPACE_FOLDER/susfs4ksu"
 
           SUSFS4KSU_PATCHES_FOLDER="$WORKSPACE_FOLDER/susfs4ksu/kernel_patches"
 
@@ -275,7 +283,7 @@
           echo "--- Applying SUSFS and Hide Stuff Patches ---"
 
           echo "--- Applying 50_add_susfs.patch... ---"
-          patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_kernel-4.14.patch" || true
+          patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
 
           echo "--- Applying fix_susfs_rejects.patch... ---"
           patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
@@ -375,22 +383,22 @@
 
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
            KSUN-false)
-            BUILD="-[KSUNext]"
+            BUILD=".KSUNext"
            ;;
            KSUN-true)
-            BUILD="-[KSUNext-SUSFS]"
+            BUILD=".KSUNext-SUSFS"
            ;;
            KSU-false)
-            BUILD="-[KSU]"
+            BUILD="-KSU"
            ;;
            KSU-true)
-            BUILD="-[KSU-SUSFS]"
+            BUILD=".KSU-SUS"
            ;;
            RKSU-false)
-            BUILD="-[RKSU]"
+            BUILD=".RKSU"
            ;;
            RKSU-true)
-            BUILD="-[RKSU-SUSFS]"
+            BUILD=".RKSU-SUSFS"
            ;;
            Normal*)
             BUILD=""
@@ -402,8 +410,8 @@
           esac
 
 
-          date="$(date +"%d%m%Y")"
-          zip_name="$date-MiA3$BUILD-${{ matrix.kernel_config.tag }}-${{ github.run_number }}"
+          date="$(date +"%Y.%m.%d")"
+          zip_name="$date-${{ env.device }}$BUILD-${{ matrix.kernel_config.tag }}-${{ github.run_number }}"
           mkdir release
           rm -rf ak_folder/*.git*
           cp -r ak_folder/* release
