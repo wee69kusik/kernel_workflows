@@ -549,7 +549,7 @@
               gh auth setup-git
               git push origin $TAG
             else
-              echo "TAG=${{ github.ref_name }}"
+              echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
             fi
 
       - name: Create GitHub Release
