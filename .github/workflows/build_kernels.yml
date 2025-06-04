@@ -523,7 +523,8 @@
             if [ "${{ github.ref_type }}" != "tag" ]; then
               TAG=$(date +"%Y/%m/%d")
               LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
-              if [ "$LATEST_TAG" == "$TAG"* ]; then
+              if [[ "$LATEST_TAG" == "$TAG"* ]]; then
+                echo "--- Found existing tag ---"
                 TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
               fi
     
