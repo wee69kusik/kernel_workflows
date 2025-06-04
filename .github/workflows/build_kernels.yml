@@ -550,4 +550,4 @@
         env:
          GH_TOKEN: ${{ github.token }}
         run: |
-          bash ../sh/upload-assets.sh "${{ env.TAG }}"
+          bash ./sh/upload-assets.sh "${{ env.TAG }}"
