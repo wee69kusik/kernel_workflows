@@ -190,6 +190,7 @@
          key: |
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-
+           -${{ matrix.kernel_config.tag }}-
 
       - name: Preparing kernel
         id: kernel
