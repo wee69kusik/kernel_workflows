@@ -468,6 +468,8 @@
           SUSFS_COMMIT_HASH=$(git ls-remote https://gitlab.com/simonpunk/susfs4ksu.git refs/heads/kernel-4.14 | awk '{ print $1 }')
           echo "SUSFS_COMMIT_HASH=$SUSFS_COMMIT_HASH" >> $GITHUB_ENV
 
+          echo "artifacts_dir=$PWD/downloaded-artifacts" >> $GITHUB_ENV
+
           date="$(date +"%d/%m/%Y")"
           echo "date=$date" >> $GITHUB_ENV
 
@@ -475,6 +477,7 @@
           echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
           git clone https://github.com/TheSillyOk/sh
+          echo "sh_dir=$PWD/sh" >> $GITHUB_ENV
           cp sh/extract_ksuver.sh $PWD
 
           echo "KSUN_V=$(bash ./extract_ksuver.sh "https://github.com/KernelSU-Next/KernelSU-Next" "kernel/Makefile" "kernel" "next")" >> $GITHUB_ENV
@@ -519,6 +522,7 @@
 
             git clone https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
             cd repo
+            echo "repo_dir=$PWD" >> $GITHUB_ENV
 
             if [ "${{ github.ref_type }}" != "tag" ]; then
               TAG=$(date +"%Y/%m/%d")
@@ -551,4 +555,4 @@
         env:
          GH_TOKEN: ${{ github.token }}
         run: |
-          bash ./sh/upload-assets.sh "${{ env.TAG }}"
+          bash ${{ env.sh_dir }}/upload-assets.sh "${{ env.TAG }}" "${{ env.repo_dir }}" "${{ env.artifacts_dir }}"
