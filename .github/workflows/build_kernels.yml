@@ -394,22 +394,22 @@
 
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
            KSUN-false)
-            BUILD=".KSUNext"
+            BUILD="-KSUNext"
            ;;
            KSUN-true)
-            BUILD=".KSUNext-SUSFS"
+            BUILD="-KSUNext.SUSFS"
            ;;
            KSU-false)
             BUILD="-KSU"
            ;;
            KSU-true)
-            BUILD=".KSU-SUS"
+            BUILD="-KSU.SUSFS"
            ;;
            RKSU-false)
-            BUILD=".RKSU"
+            BUILD="-RKSU"
            ;;
            RKSU-true)
-            BUILD=".RKSU-SUSFS"
+            BUILD="-RKSU.SUSFS"
            ;;
            Normal*)
             BUILD=""
