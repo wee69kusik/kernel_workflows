@@ -476,6 +476,12 @@
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
+          if [ ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }} ]; then
+            echo "chat_id=@ok_kernel_ci" >> $GITHUB_ENV
+          else
+            echo "chat_id=@ok_kernel" >> $GITHUB_ENV
+          fi
+
           git clone https://github.com/TheSillyOk/sh
           echo "sh_dir=$PWD/sh" >> $GITHUB_ENV
           cp sh/extract_ksuver.sh $PWD
@@ -566,3 +572,17 @@
          GH_TOKEN: ${{ github.token }}
         run: |
           bash ${{ env.sh_dir }}/upload-assets.sh "${{ env.TAG }}" "${{ env.repo_dir }}" "${{ env.artifacts_dir }}"
+
+      - name: Send Telegram Notification
+        env:
+         TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=${{ env.chat_id }}" \
+            -d "parse_mode=Markdown" \
+            --data-urlencode "text=
+            🔔 New kernel release uploaded!
+            • 🏷️ *Branch*: ${{ github.ref_name }}
+            • 📌 *Tag*: ${{ env.TAG }}
+            • 📆 *Released*: ${{ env.date }}
+            [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})"
