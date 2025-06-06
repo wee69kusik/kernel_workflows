@@ -531,20 +531,23 @@
             echo "repo_dir=$PWD" >> $GITHUB_ENV
 
             if [ "${{ github.ref_type }}" != "tag" ]; then
+              if [ ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }} ]; then
+                TAG=$(date +"%Y/%m/%d")-test
+              else
+                TAG=$(date +"%Y/%m/%d")-r1
+                LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
+                BEFORE_LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[1].name')
 
-              TAG=$(date +"%Y/%m/%d")-r1
-              LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
-              BEFORE_LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[1].name')
-
-              if [[ "$LATEST_TAG" == "$TAG" && "$BEFORE_LATEST_TAG" != "$TAG"* ]]; then
-                TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
-              elif [[ "$LATEST_TAG" == "$TAG"* && "$BEFORE_LATEST_TAG" == "$TAG"* ]]; then
-                LATEST_SUFFIX=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%d", suffix}')
-                BEFORE_LATEST_SUFFIX=$(echo "$BEFORE_LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%d", suffix}')
-                if [ "$LATEST_SUFFIX" -gt "$BEFORE_LATEST_SUFFIX" ]; then 
-                  TAG="$TAG-r$LATEST_SUFFIX"
-                else
-                  TAG="$TAG-r$BEFORE_LATEST_SUFFIX"
+                if [[ "$LATEST_TAG" == "$TAG" && "$BEFORE_LATEST_TAG" != "$TAG"* ]]; then
+                  TAG=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%s-r%d", $1, suffix}')
+                elif [[ "$LATEST_TAG" == "$TAG"* && "$BEFORE_LATEST_TAG" == "$TAG"* ]]; then
+                  LATEST_SUFFIX=$(echo "$LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%d", suffix}')
+                  BEFORE_LATEST_SUFFIX=$(echo "$BEFORE_LATEST_TAG" | awk -F'-r' '{suffix=$2; if (!suffix) suffix=0; suffix++; printf "%d", suffix}')
+                  if [ "$LATEST_SUFFIX" -gt "$BEFORE_LATEST_SUFFIX" ]; then 
+                    TAG="$TAG-r$LATEST_SUFFIX"
+                  else
+                    TAG="$TAG-r$BEFORE_LATEST_SUFFIX"
+                  fi
                 fi
               fi
     
@@ -553,7 +556,7 @@
 
               git tag $TAG
               gh auth setup-git
-              git push origin $TAG
+              git push origin $TAG || true
             else
               echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
             fi
