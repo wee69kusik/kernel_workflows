@@ -532,7 +532,7 @@
 
             if [ "${{ github.ref_type }}" != "tag" ]; then
 
-              TAG=$(date +"%Y/%m/%d")
+              TAG=$(date +"%Y/%m/%d")-r1
               LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
               BEFORE_LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[1].name')
 
