@@ -313,11 +313,7 @@
               echo "--- Applying susfs patches... ---"
               patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
               cd ./KernelSU-Next
-              patch -p1 --forward --fuzz=3 < $SUSFS4KSU_PATCHES_FOLDER/KernelSU/10_enable_susfs_for_ksu.patch || true
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_apk_sign.c.patch || true
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_core_hook.c.patch || true
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_selinux.c.patch || true
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_ksud.c.patch || true
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/0001-kernel-implement-susfs-v1.5.5-v1.5.7-KSUN-v1.0.8.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
