@@ -205,7 +205,7 @@
           cd "$KERNEL_FOLDER"
 
           git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$WORKSPACE_FOLDER/kernel_patches"
-          KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
+          echo "patches_folder=$WORKSPACE_FOLDER/kernel_patches" >> $GITHUB_ENV
           mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
            if ${{ env.python3 }}; then
              echo "--- Applying python3.patch... ---"
@@ -229,9 +229,6 @@
           KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
           KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
           cd "$KERNEL_FOLDER"
-          
-          echo "Applying manual_hooks.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/manual_hooks.patch" || true
 
           echo "--- Setting up KernelSU: ${{ matrix.build_type }} ---"
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
@@ -240,14 +237,12 @@
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/scope_min_manual_hooks_v1.4.patch" || true
             cd KernelSU
            ;;
-           KSUN-false)
+           KSUN-*)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-            cd KernelSU-Next
-           ;;
-           KSUN-true)
-            curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs-dev
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU-Next
            ;;
            RKSU-false)
@@ -255,6 +250,7 @@
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            RKSU-true)
@@ -262,6 +258,7 @@
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            *)
@@ -313,8 +310,15 @@
              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
             ;;
             KSUN)
-              echo "--- Applying BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch... ---"
+              echo "--- Applying susfs patches... ---"
               patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
+              cd ./KernelSU-Next
+              patch -p1 --forward --fuzz=3 < $SUSFS4KSU_PATCHES_FOLDER/KernelSU/10_enable_susfs_for_ksu.patch || true
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_apk_sign.c.patch || true
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_core_hook.c.patch || true
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_selinux.c.patch || true
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/fix_ksud.c.patch || true
+            ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
           cd $KERNEL_FOLDER
@@ -459,7 +463,6 @@
           }
 
           get_ref "KSUN" "https://github.com/KernelSU-Next/KernelSU-Next.git" "KernelSU-Next/KernelSU-Next" "commit" "HEAD"
-          get_ref "KSUN-SUSFS" "https://github.com/KernelSU-Next/KernelSU-Next.git" "KernelSU-Next/KernelSU-Next" "commit" "next-susfs-dev"
 
           get_ref "RKSU" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "HEAD"
           get_ref "RKSU-SUSFS" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "susfs-main"
@@ -486,7 +489,6 @@
           cp sh/extract_ksuver.sh $PWD
 
           echo "KSUN_V=$(bash ./extract_ksuver.sh "https://github.com/KernelSU-Next/KernelSU-Next" "kernel/Makefile" "kernel" "next")" >> $GITHUB_ENV
-          echo "KSUN-SUSFS_V=$(bash ./extract_ksuver.sh "https://github.com/KernelSU-Next/KernelSU-Next" "kernel/Makefile" "kernel" "next-susfs-dev")" >> $GITHUB_ENV
           echo "RKSU_V=$(bash ./extract_ksuver.sh "https://github.com/rsuntk/KernelSU" "kernel/Makefile" "kernel" "main")" >> $GITHUB_ENV
           echo "RKSU-SUSFS_V=$(bash ./extract_ksuver.sh "https://github.com/rsuntk/KernelSU" "kernel/Makefile" "kernel" "susfs-main")" >> $GITHUB_ENV
 
@@ -510,7 +512,7 @@
 
           Versions used for KernelSU variants & susfs:
           -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.7 ([${{ env.RKSU-SUSFS_V }}](${{ env.RKSU-SUSFS_URL }}))
-          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.7+ ([${{ env.KSUN-SUSFS_V }}](${{ env.KSUN-SUSFS_URL }}))
+          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.7+
           -> SUSFS4KSU: [${{ env.SUSFS_COMMIT_HASH }}](https://gitlab.com/simonpunk/susfs4ksu/-/commit/${{ env.SUSFS_COMMIT_HASH }})
 
           Credits:
