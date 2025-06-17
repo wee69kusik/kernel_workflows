@@ -74,14 +74,14 @@
 
             if [[ "$name" == *"branch"* && "$value" == *"-b " ]]; then
               echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
-              echo "-> Set $name value to \"$default_value\""
+              echo "$name -> \"$default_value\""
             else
              if [ -z "$value" ]; then
               echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
-              echo "-> Set $name value to \"$default_value\""
+              echo "$name -> \"$default_value\""
              else
                echo "$ENV_NAME=$value" >> $GITHUB_ENV
-               echo "-> Set $name value to \"$value\""
+               echo "$name -> \"$value\""
              fi
             fi
           }
@@ -107,9 +107,9 @@
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
-          root-reserve-mb: 8192
+          root-reserve-mb: 10192
           temp-reserve-mb: 2048
-          swap-size-mb: 8192
+          swap-size-mb: 6192
           remove-dotnet: "true"
           remove-android: "true"
           remove-haskell: "true"
@@ -119,11 +119,10 @@
         id: workspace
         run: |
           set -e
-          # Define an absolute workspace folder inside the GitHub workspace
+
           WORKSPACE_FOLDER="${GITHUB_WORKSPACE}/workspace"
+          echo "workspace_folder=$WORKSPACE_FOLDER" >> $GITHUB_ENV
           mkdir -p "$WORKSPACE_FOLDER"
-          echo "workspace-folder=$WORKSPACE_FOLDER" >> $GITHUB_OUTPUT
-          echo "start_time=$(date +%s)" >> $GITHUB_OUTPUT
 
           sudo apt-get update -y -qq
           sudo apt-get install -y --no-install-recommends \
@@ -151,14 +150,13 @@
             llvm-dev
 
           sudo apt install libncurses6 libfdt-dev
-          # Also output a tools folder variable (same as workspace here)
-          echo "tools-folder=$WORKSPACE_FOLDER" >> $GITHUB_OUTPUT
+          echo "tools_folder=$WORKSPACE_FOLDER" >> $GITHUB_ENV
 
       - name: Cache Clang
         uses: actions/cache@v4
         id: cache-clang
         with:
-          path: ${{ steps.workspace.outputs.workspace-folder }}/clang
+          path: ${{ env.workspace_folder }}/clang
           key: clang-r547379-ubuntu-latest
           restore-keys: |
             clang-r547379-ubuntu-latest
@@ -166,7 +164,7 @@
 
       - name: Download and Extract Clang
         if: steps.cache-clang.outputs.cache-hit != 'true'
-        working-directory: ${{ steps.workspace.outputs.workspace-folder }}
+        working-directory: ${{ env.workspace_folder }}
         run: |
           set -e
           echo "Downloading and extracting clang..."
@@ -188,6 +186,7 @@
          path: ~/.ccache
          key: ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}-${{ github.run_number }}
          restore-keys: |
+           ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-
            -${{ matrix.kernel_config.tag }}-
@@ -196,24 +195,24 @@
         id: kernel
         run: |
           set -e
- 
-          WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
 
-          git clone --depth=1 "${{ matrix.kernel_config.kernel_url }}"${{ env.kernel_branch }} "$WORKSPACE_FOLDER/kernel_tree"
-          echo "kernel-folder=$WORKSPACE_FOLDER/kernel_tree" >> $GITHUB_OUTPUT
-          KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
+          KERNEL_FOLDER="${{ env.workspace_folder }}/kernel_tree"
+          echo "kernel_folder=$KERNEL_FOLDER" >> $GITHUB_ENV
+          git clone --depth=1 "${{ matrix.kernel_config.kernel_url }}"${{ env.kernel_branch }} "$KERNEL_FOLDER"
           cd "$KERNEL_FOLDER"
 
-          git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$WORKSPACE_FOLDER/kernel_patches"
-          echo "patches_folder=$WORKSPACE_FOLDER/kernel_patches" >> $GITHUB_ENV
-          mkdir -p "$WORKSPACE_FOLDER/kernel_tree/common/fs" "$WORKSPACE_FOLDER/kernel_tree/common/include/linux"
+          PATCHES_FOLDER="${{ env.workspace_folder }}/kernel_patches"
+          echo "patches_folder=$PATCHES_FOLDER" >> $GITHUB_ENV
+          git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$PATCHES_FOLDER"
+          
+          mkdir -p "$KERNEL_FOLDER/common/fs" "$KERNEL_FOLDER/common/include/linux"
            if ${{ env.python3 }}; then
              echo "--- Applying python3.patch... ---"
-             patch -p1 -F 3 -N < "$WORKSPACE_FOLDER/kernel_patches/python3.patch" || true
+             patch -p1 -F 3 -N < "$PATCHES_FOLDER/python3.patch" || true
            fi
 
            echo "--- Applying fix_lto.patch... ---"
-           patch -p1 < "$WORKSPACE_FOLDER/kernel_patches/fix_lto.patch" || true
+           patch -p1 < "$PATCHES_FOLDER/fix_lto.patch" || true
 
            sed -i 's/-dirty//' ./scripts/setlocalversion
 
@@ -225,40 +224,37 @@
         run: |
           set -e
 
-          WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
-          KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
-          KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
-          cd "$KERNEL_FOLDER"
+          cd "${{ env.kernel_folder }}"
 
           echo "--- Setting up KernelSU: ${{ matrix.build_type }} ---"
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
            KSU-*)
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/scope_min_manual_hooks_v1.4.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/scope_min_manual_hooks_v1.4.patch" || true
             cd KernelSU
            ;;
            KSUN-*)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU-Next
            ;;
            RKSU-false)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            RKSU-true)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-main
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            *)
@@ -266,7 +262,7 @@
            ;;
           esac
           echo "--- ${{ matrix.build_type }} setup complete ---"
-           cd $KERNEL_FOLDER
+           cd ${{ env.kernel_folder }}
 
           # Append configuration settings to the defconfig file
            sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/${{ env.defconfig }}"
@@ -277,47 +273,44 @@
         run: |
           set -e
 
-          WORKSPACE_FOLDER="${{ steps.workspace.outputs.workspace-folder }}"
-          KERNEL_FOLDER="$WORKSPACE_FOLDER/kernel_tree"
-          KERNEL_PATCHES_FOLDER="$WORKSPACE_FOLDER/kernel_patches"
+          SUSFS_FOLDER="${{ env.workspace_folder }}/susfs4ksu"
+          SUSFS_PATCHES="$SUSFS_FOLDER/kernel_patches"
+          echo "susfs_patches=$SUSFS_PATCHES" >> $GITHUB_ENV
+          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$SUSFS_FOLDER"
+ 
+          cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
+          cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
 
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$WORKSPACE_FOLDER/susfs4ksu"
-
-          SUSFS4KSU_PATCHES_FOLDER="$WORKSPACE_FOLDER/susfs4ksu/kernel_patches"
-
-          cp -r $SUSFS4KSU_PATCHES_FOLDER/fs/* $KERNEL_FOLDER/fs/
-          cp -r $SUSFS4KSU_PATCHES_FOLDER/include/linux/* $KERNEL_FOLDER/include/linux
-
-          cd "$KERNEL_FOLDER"
+          cd "${{ env.kernel_folder }}"
           echo "--- Applying SUSFS and Hide Stuff Patches ---"
 
           echo "--- Applying 50_add_susfs.patch... ---"
-          patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
+          patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
 
           echo "--- Applying fix_susfs_rejects.patch... ---"
-          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
+          patch -p1 -F 3 -N < "${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
 
           echo "Applying 69_hide_stuff.patch..."
-          patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/69_hide_stuff.patch" || true
+          patch -p1 -F 3 -N < "${{ env.patches_folder }}/69_hide_stuff.patch" || true
 
           echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
           case "${{ matrix.build_type }}" in
             KSU)        
              cd KernelSU
-             patch -p1 -F 3 -N < "$SUSFS4KSU_PATCHES_FOLDER/KernelSU/10_enable_susfs_for_ksu.patch"
+             patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
             RKSU)
-             patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_folder }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
             ;;
             KSUN)
               echo "--- Applying susfs patches... ---"
-              patch -p1 -F 3 -N < "$KERNEL_PATCHES_FOLDER/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
+              patch -p1 -F 3 -N < "${{ env.patches_folder }}/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
               cd ./KernelSU-Next
               patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/0001-kernel-implement-susfs-v1.5.5-v1.5.7-KSUN-v1.0.8.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
-          cd $KERNEL_FOLDER
+          cd ${{ env.kernel_folder }}
 
 
           echo "--- SUSFS and Hide Stuff Patches applied ---"
@@ -328,13 +321,10 @@
         id: build
         run: |
           set -e
-          # Use absolute paths for the kernel folder and tools folder
-          KERNEL_FOLDER="${{ steps.kernel.outputs.kernel-folder }}"
-          TOOLS_FOLDER="${{ steps.workspace.outputs.tools-folder }}"
-          cd $KERNEL_FOLDER
+          cd ${{ env.kernel_folder }}
 
           if [[ "${{ matrix.kernel_config.tag }}" == *"SM6125"* ]]; then
-           EXTRA=" DTC_PREBUILT=true DTC=$KERNEL_FOLDER/dtc/dtc DTC_OVERLAY_TEST_EXT=$KERNEL_FOLDER/libufdt/ufdt_apply_overlay MKDTIMG=$KERNEL_FOLDER/libufdt/mkdtimg"
+           EXTRA=" DTC_PREBUILT=true DTC=${{ env.kernel_folder }}/dtc/dtc DTC_OVERLAY_TEST_EXT=${{ env.kernel_folder }}/libufdt/ufdt_apply_overlay MKDTIMG=${{ env.kernel_folder }}/libufdt/mkdtimg"
            wget https://android.googlesource.com/platform/prebuilts/misc/+archive/refs/tags/android-15.0.0_r26/linux-x86.tar.gz -O androd.tar.gz
            tar -xzf androd.tar.gz
            git clone https://github.com/TheSillyOk/kernel_extra -b main extra
@@ -350,13 +340,13 @@
           export SUBARCH=arm64
           export KBUILD_BUILD_USER="Ok"
           export KBUILD_BUILD_HOST="Github"
-          export PATH="$TOOLS_FOLDER/clang/bin:$PATH"
+          export PATH="${{ env.tools_folder }}/clang/bin:$PATH"
           BUILD_START_TIME=$(date +%s)
 
-          mkdir -p "$KERNEL_FOLDER/artifacts"
+          mkdir -p "${{ env.kernel_folder }}/artifacts"
 
-          make O="$KERNEL_FOLDER/out" ARCH=arm64 ${{ env.defconfig }} ${{ env.config }}
-          make O="$KERNEL_FOLDER/out"$EXTRA CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
+          make O="${{ env.kernel_folder }}/out" ARCH=arm64 ${{ env.defconfig }} ${{ env.config }}
+          make O="${{ env.kernel_folder }}/out"$EXTRA CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
 
           BUILD_END_TIME=$(date +%s)
           DIFF=$((BUILD_END_TIME - BUILD_START_TIME))
@@ -368,8 +358,8 @@
         id: anykernel
         run: |
           set -e
-          KERNEL_FOLDER="${{ steps.kernel.outputs.kernel-folder }}"
-          BOOT_FOLDER="$KERNEL_FOLDER/out/arch/arm64/boot"
+
+          BOOT_FOLDER="${{ env.kernel_folder }}/out/arch/arm64/boot"
           cd "$BOOT_FOLDER"
 
           git clone --recursive --depth=1 "${{ env.anykernel_url }}"${{ env.anykernel_branch }} "$BOOT_FOLDER/ak_folder"
@@ -429,7 +419,7 @@
         with:
           name: ${{ steps.anykernel.outputs.anykernel_zipname }}
           path: |
-            ${{ steps.kernel.outputs.kernel-folder }}/out/arch/arm64/boot/release/
+            ${{ env.kernel_folder }}/out/arch/arm64/boot/release/
 
   release:
     needs: build
