@@ -34,11 +34,6 @@
          tag: "Snowflake"
          defconfig: "vendor/laurel_sprout-perf_defconfig"
 
-       - kernel_name: "N22.1"
-         kernel_url: "https://github.com/TheSillyOk/kernel_xiaomi_laurel_sprout-noname"
-         kernel_branch: "heresy"
-         tag: "NoName-22.1"
-
        - kernel_name: "N18.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "lineage-18.1"
