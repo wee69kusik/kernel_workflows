@@ -1,12 +1,9 @@
  name: Kernel Build
  on:
+  schedule:
+   - cron: "0 12 * * *"
   workflow_dispatch:
     inputs:
-      make_release:
-        description: 'Do you want to create a release?'
-        required: false
-        type: boolean
-        default: false
       pre_release:
         description: 'Make it a prerelease?'
         required: false
@@ -17,7 +14,6 @@
   push:
  jobs:
   build:
-    if: github.event.repository.owner.id == github.event.sender.id
     runs-on: ubuntu-latest
     strategy:
      fail-fast: false
@@ -69,18 +65,16 @@
             local name="$1"
             local default_value="$2"
             local value="$3"
-            
-            ENV_NAME=$name
 
             if [[ "$name" == *"branch"* && "$value" == *"-b " ]]; then
-              echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
+              echo "$name=$default_value" >> $GITHUB_ENV
               echo "$name -> \"$default_value\""
             else
              if [ -z "$value" ]; then
-              echo "$ENV_NAME=$default_value" >> $GITHUB_ENV
+              echo "$name=$default_value" >> $GITHUB_ENV
               echo "$name -> \"$default_value\""
              else
-               echo "$ENV_NAME=$value" >> $GITHUB_ENV
+               echo "$name=$value" >> $GITHUB_ENV
                echo "$name -> \"$value\""
              fi
             fi
@@ -204,7 +198,7 @@
           PATCHES_FOLDER="${{ env.workspace_folder }}/kernel_patches"
           echo "patches_folder=$PATCHES_FOLDER" >> $GITHUB_ENV
           git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$PATCHES_FOLDER"
-          
+
           mkdir -p "$KERNEL_FOLDER/common/fs" "$KERNEL_FOLDER/common/include/linux"
            if ${{ env.python3 }}; then
              echo "--- Applying python3.patch... ---"
@@ -215,7 +209,8 @@
            patch -p1 < "$PATCHES_FOLDER/fix_lto.patch" || true
 
            sed -i 's/-dirty//' ./scripts/setlocalversion
-
+           sed -i -E 's/^CONFIG_LOCALVERSION=(.*)//gi' "arch/arm64/configs/${{ env.defconfig }}"
+           echo -e "\nCONFIG_LOCALVERSION=\"-Ok\"\n" >> "arch/arm64/configs/${{ env.defconfig }}"
            sed -i -E 's/^CONFIG_(LTO[^=]*|HAVE_LTO[^=]*|CC_OPTIMIZE_FOR[^=]*|MODVERSIONS)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_LTO_CLANG=y\nCONFIG_LTO_CLANG_THIN=y\nCONFIG_HAVE_LTO_CLANG=y\nCONFIG_CC_OPTIMIZE_FOR_PERFORMANCE=y\nCONFIG_MODVERSIONS=n" >> "arch/arm64/configs/${{ env.defconfig }}"
 
       - name: Apply KernelSU
@@ -265,7 +260,8 @@
            cd ${{ env.kernel_folder }}
 
           # Append configuration settings to the defconfig file
-           sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}" && echo -e "\n\n# Workflow added configs #\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y" >> "arch/arm64/configs/${{ env.defconfig }}"
+           sed -i -E 's/^CONFIG_(KPROBES|TMPFS_XATTR|KSU[^=]*)=(y|n)/# CONFIG_\1=\2/g' "arch/arm64/configs/${{ env.defconfig }}"
+           echo -e "\nCONFIG_KPROBES=n\nCONFIG_KSU=y\nCONFIG_TMPFS_XATTR=y\n" >> "arch/arm64/configs/${{ env.defconfig }}"
 
       - name: Apply SUSFS
         if: ${{ matrix.susfs }}
@@ -277,7 +273,7 @@
           SUSFS_PATCHES="$SUSFS_FOLDER/kernel_patches"
           echo "susfs_patches=$SUSFS_PATCHES" >> $GITHUB_ENV
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$SUSFS_FOLDER"
- 
+
           cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
           cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
 
@@ -295,7 +291,7 @@
 
           echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
           case "${{ matrix.build_type }}" in
-            KSU)        
+            KSU)
              cd KernelSU
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
@@ -423,7 +419,6 @@
 
   release:
     needs: build
-    if: ${{ github.ref_type == 'tag' || inputs.make_release }}
     permissions:
       contents: write
     runs-on: ubuntu-latest
@@ -464,12 +459,6 @@
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
-          if [ ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }} ]; then
-            echo "chat_id=@ok_kernel_ci" >> $GITHUB_ENV
-          else
-            echo "chat_id=@ok_kernel" >> $GITHUB_ENV
-          fi
-
           git clone https://github.com/TheSillyOk/sh
           echo "sh_dir=$PWD/sh" >> $GITHUB_ENV
           cp sh/extract_ksuver.sh $PWD
@@ -489,9 +478,8 @@
 
           [Github run](${{ env.run }}) • [Nightly run](${{ env.nightly_run }})
 
-          SUSFS Module: 
-          -> https://github.com/sidex15/ksu_module_susfs/releases
-      
+          [SUSFS Module](https://github.com/sidex15/ksu_module_susfs/releases)
+
           KSU Managers:
           -> Rissu's KernelSU (`RKSU`): [Manager](https://github.com/rsuntk/KernelSU/releases) / [Alternative](https://t.me/mksu_ci)
           -> KernelSU-Next (`KSUN`): [Releases](https://github.com/rifsxd/KernelSU-Next/releases) / [CI builds](https://t.me/ksunext_ci)
@@ -510,14 +498,15 @@
         env:
          GH_TOKEN: ${{ github.token }}
         run: |
-
+            gh auth setup-git
             git clone https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
             cd repo
             echo "repo_dir=$PWD" >> $GITHUB_ENV
 
             if [ "${{ github.ref_type }}" != "tag" ]; then
-              if [ ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }} ]; then
+              if [ ${{ endsWith(github.ref_name, '-test') }} || ${{inputs.pre_release }} ]; then
                 TAG=$(date +"%Y/%m/%d")-test
+                gh release delete "$TAG" -y || true
               else
                 TAG=$(date +"%Y/%m/%d")-r1
                 LATEST_TAG=$(gh api repos/${{ github.repository }}/tags --jq '.[0].name')
@@ -535,12 +524,11 @@
                   fi
                 fi
               fi
-    
+
               echo "Created tag: $TAG"
               echo "TAG=$TAG" >> $GITHUB_ENV
 
               git tag $TAG
-              gh auth setup-git
               git push origin $TAG || true
             else
               echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
@@ -550,7 +538,7 @@
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
-          prerelease: ${{ endsWith(github.ref_name, '-PRE') || inputs.pre_release }}
+          prerelease: ${{ endsWith(github.ref_name, '-test') || inputs.pre_release }}
           files: ""
           name: ${{ env.date }}
           body_path: release_body.md
@@ -561,16 +549,27 @@
         run: |
           bash ${{ env.sh_dir }}/upload-assets.sh "${{ env.TAG }}" "${{ env.repo_dir }}" "${{ env.artifacts_dir }}"
 
-      - name: Send Telegram Notification
-        env:
-         TG_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      - name: Send Telegram Notification (CI)
         run: |
           curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d "chat_id=${{ env.chat_id }}" \
+            -d "chat_id=@ok_kernel_ci" \
             -d "parse_mode=Markdown" \
             --data-urlencode "text=
-            🔔 New kernel release uploaded!
-            • 🏷️ *Branch*: ${{ github.ref_name }}
-            • 📌 *Tag*: ${{ env.TAG }}
-            • 📆 *Released*: ${{ env.date }}
+            • 🔔 A new kernel CI release has been completed!
+            🏷️ *Branch*: ${{ github.ref_name }}
+            📌 *Tag*: ${{ env.TAG }}
+            📆 *Released*: ${{ env.date }}
+            [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})"
+
+      - name: Send Telegram Notification (Release)
+        if: ${{ !endsWith(github.ref_name, '-test') && !inputs.pre_release }}
+        run: |
+          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+            -d "chat_id=@ok_kernel" \
+            -d "parse_mode=Markdown" \
+            --data-urlencode "text=
+            • 🔔 A new kernel release has been completed!
+            🏷️ *Branch*: ${{ github.ref_name }}
+            📌 *Tag*: ${{ env.TAG }}
+            📆 *Released*: ${{ env.date }}
             [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})"
