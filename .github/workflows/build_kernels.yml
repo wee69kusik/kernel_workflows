@@ -499,7 +499,7 @@
             echo "repo_dir=$PWD" >> $GITHUB_ENV
 
             if [ "${{ github.ref_type }}" != "tag" ]; then
-              if [ ${{ endsWith(github.ref_name, '-test') }} || ${{inputs.pre_release }} ]; then
+              if [[ "${{ inputs.pre_release }}" != "false" || "${{ github.ref_name }}" != "master" ]]; then
                 TAG=$(date +"%Y/%m/%d")-test
                 gh release delete "$TAG" -y || true
               else
@@ -533,7 +533,7 @@
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.TAG }}
-          prerelease: ${{ endsWith(github.ref_name, '-test') || inputs.pre_release }}
+          prerelease: ${{ endsWith(env.TAG, '-test') }}
           files: ""
           name: ${{ env.date }}
           body_path: release_body.md
@@ -551,19 +551,6 @@
             -d "parse_mode=Markdown" \
             --data-urlencode "text=
             • 🔔 A new kernel CI release has been completed!
-            🏷️ *Branch*: ${{ github.ref_name }}
-            📌 *Tag*: ${{ env.TAG }}
-            📆 *Released*: ${{ env.date }}
-            [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})"
-
-      - name: Send Telegram Notification (Release)
-        if: ${{ !endsWith(github.ref_name, '-test') && !inputs.pre_release }}
-        run: |
-          curl -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-            -d "chat_id=@ok_kernel" \
-            -d "parse_mode=Markdown" \
-            --data-urlencode "text=
-            • 🔔 A new kernel release has been completed!
             🏷️ *Branch*: ${{ github.ref_name }}
             📌 *Tag*: ${{ env.TAG }}
             📆 *Released*: ${{ env.date }}
