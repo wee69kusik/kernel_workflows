@@ -1,11 +1,46 @@
+# Kernel Labels:
 
-## NoName:
- - [LOS 18.1](https://github.com/TheSillyOk/kernel_laurel_sprout/commits/lineage-18.1) • [Based on](https://github.com/Mi-A3-laurel-sprout/kernel_xiaomi_XD/tree/lineage-18.1) • NON-RDP • A11-A14 QPR1
- - [LOS 22.1](https://github.com/TheSillyOk/kernel_xiaomi_laurel_sprout-noname/commits/heresy) • [Based on](https://github.com/aleeeee1/kernel_xiaomi_laurel_sprout-noname/tree/heresy) • NON-RDP • Recommended for A15+
- - [VIC](https://github.com/TheSillyOk/kernel_laurel_sprout/commits/vic) • [Based on](https://github.com/Mi-A3-laurel-sprout/kernel_xiaomi_XD/tree/vic) • RDP
+The kernel label uses the following format:
+- `buildDate-deviceName-buildType-kernelVariant-runNumber`
+As an example you can see:
+- `2025.06.18-MiA3-KSU-SM6125-22.2-148`
 
-## SM6125:
- - [LOS 22.2](https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125/tree/lineage-22.2-common) • [Based on](https://github.com/Skyblueborb/android_kernel_xiaomi_sm6125/tree/lineage-22.2-common) • NON-RDP
+### buildDate
+The date the kernel was built following the format: `YYYY.MM.DD`.
+### deviceName
+The name of the device the kernel is built for, like `MiA3`.
+### buildType
+The type of the build, it can be the following:
+- Normal (empty)
+- KSU (-KSU)
+- RKSU (-RKSU)
+- KSUN (-KSUN)
 
-## Snowflake:
- - [Snowflake](https://github.com/liquidprjkt/snowflake_laurel_sprout) [Based on](https://github.com/liquidprjkt/snowflake_laurel_sprout) • NON-RDP
+For SUSFS variants, the buildType receives a `.SUSFS` suffix.
+### kernelVariant
+This is the tag/kernel name, currently these are the tags:
+- NoName 18.1 -> NoName-18.1
+- NoName VIC -> NoName-VIC
+- NoName Snowflake -> Snowflake
+- SM6125 22.2 -> SM6125-22.2
+### runNumber
+Simply the number of the github run, don't use this as a definitive versioning metric, always base yourself on the build date.
+
+# Kernels used when building:
+ - [NoName LOS 18.1](https://github.com/Mi-A3-laurel-sprout/kernel_xiaomi_XD/tree/lineage-18.1) • NON-RDP • A11-A14 QPR1
+ - [NoName VIC](https://github.com/Mi-A3-laurel-sprout/kernel_xiaomi_XD/tree/vic) • RDP
+ - [NoName Snowflake](https://github.com/liquidprjkt/snowflake_laurel_sprout) • NON-RDP
+ - [SM6125 LOS 22.2](https://github.com/LineageOS/android_kernel_xiaomi_sm6125) • NON-RDP
+
+# Credits:
+
+**Kernel Sources**:
+- [@Skyblueborb](https://github.com/Skyblueborb) -> SM6125, NoName 18.1
+- [@aleeeee1](https://github.com/aleeeee1) -> 'heresy' mic fix kernel
+- [@PowerX-NOT](https://github.com/PowerX-NOT) -> NoName VIC
+- [@RainySorcerer](https://github.com/RainySorcerer) -> Snowflake
+
+**Workflow/Patches**:
+- [@TheWildJames](https://github.com/TheWildJames) -> workflow reference, patches
+- [@simonpunk](https://gitlab.com/simonpunk) -> susfs patches
+- [@sidex15](https://github.com/sidex15) -> susfs patches
