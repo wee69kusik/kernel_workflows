@@ -12,6 +12,8 @@
   workflow_call:
   pull_request:
   push:
+    paths-ignore:
+      - 'README.md'
  jobs:
   build:
     runs-on: ubuntu-latest
