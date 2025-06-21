@@ -559,4 +559,8 @@
             🏷️ *Branch*: ${{ github.ref_name }}
             📌 *Tag*: ${{ env.TAG }}
             📆 *Released*: ${{ env.date }}
-            [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})"
+            [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})
+            
+            • KernelSU-Next (`KSUN`) [${{ env.KSUN_V }}](${{ env.KSUN_URL }})
+            • Rissu's KernelSU (`RKSU`) [${{ env.RKSU_V }}](${{ env.RKSU_URL }})
+            —> w/ SUSFS: [${{ env.RKSU-SUSFS_V }}](${{ env.RKSU-SUSFS_URL }})"
