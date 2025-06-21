@@ -193,7 +193,7 @@
           cd "$KERNEL_FOLDER"
 
           PATCHES_FOLDER="${{ env.workspace_folder }}/kernel_patches"
-          echo "patches_folder=$PATCHES_FOLDER" >> $GITHUB_ENV
+          echo "patches_dir=$PATCHES_FOLDER" >> $GITHUB_ENV
           git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$PATCHES_FOLDER"
 
           mkdir -p "$KERNEL_FOLDER/common/fs" "$KERNEL_FOLDER/common/include/linux"
@@ -222,31 +222,31 @@
           case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
            KSU-*)
             curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/scope_min_manual_hooks_v1.4.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/scope_min_manual_hooks_v1.4.patch" || true
             cd KernelSU
            ;;
            KSUN-*)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU-Next
            ;;
            RKSU-false)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            RKSU-true)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-main
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/path_unmount.patch" || true
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/get_cred_rcu.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
             cd KernelSU
            ;;
            *)
@@ -281,10 +281,10 @@
           patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
 
           echo "--- Applying fix_susfs_rejects.patch... ---"
-          patch -p1 -F 3 -N < "${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
+          patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
 
           echo "Applying 69_hide_stuff.patch..."
-          patch -p1 -F 3 -N < "${{ env.patches_folder }}/69_hide_stuff.patch" || true
+          patch -p1 -F 3 -N < "${{ env.patches_dir }}/69_hide_stuff.patch" || true
 
           echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
           case "${{ matrix.build_type }}" in
@@ -293,13 +293,13 @@
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
             RKSU)
-             patch -p1 -F 3 -N < "${{ env.patches_folder }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
             ;;
             KSUN)
               echo "--- Applying susfs patches... ---"
-              patch -p1 -F 3 -N < "${{ env.patches_folder }}/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
+              patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
               cd ./KernelSU-Next
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_folder }}/KSUN/0001-kernel-implement-susfs-v1.5.5-v1.5.7-KSUN-v1.0.8.patch
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.5-v1.5.7-KSUN-v1.0.8.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
