@@ -205,6 +205,9 @@
            echo "--- Applying fix_lto.patch... ---"
            patch -p1 < "$PATCHES_FOLDER/fix_lto.patch" || true
 
+           echo "--- Applying ptrace_fix.patch... ---"
+           patch -p1 < "$PATCHES_FOLDER/ptrace_fix.patch" || true
+
            sed -i 's/-dirty//' ./scripts/setlocalversion
            sed -i -E 's/^CONFIG_LOCALVERSION=(.*)//gi' "arch/arm64/configs/${{ env.defconfig }}"
            echo -e "\nCONFIG_LOCALVERSION=\"-Ok\"\n" >> "arch/arm64/configs/${{ env.defconfig }}"
