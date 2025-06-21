@@ -208,6 +208,9 @@
            echo "--- Applying ptrace_fix.patch... ---"
            patch -p1 < "$PATCHES_FOLDER/ptrace_fix.patch" || true
 
+           echo "--- Applying 69_hide_stuff.patch... ---"
+           patch -p1 -F 3 -N < "$PATCHES_FOLDER/69_hide_stuff.patch" || true
+
            sed -i 's/-dirty//' ./scripts/setlocalversion
            sed -i -E 's/^CONFIG_LOCALVERSION=(.*)//gi' "arch/arm64/configs/${{ env.defconfig }}"
            echo -e "\nCONFIG_LOCALVERSION=\"-Ok\"\n" >> "arch/arm64/configs/${{ env.defconfig }}"
@@ -285,9 +288,6 @@
 
           echo "--- Applying fix_susfs_rejects.patch... ---"
           patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
-
-          echo "Applying 69_hide_stuff.patch..."
-          patch -p1 -F 3 -N < "${{ env.patches_dir }}/69_hide_stuff.patch" || true
 
           echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
           case "${{ matrix.build_type }}" in
