@@ -281,7 +281,7 @@
           cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
 
           cd "${{ env.kernel_folder }}"
-          echo "--- Applying SUSFS and Hide Stuff Patches ---"
+          echo "--- Applying SUSFS Patches ---"
 
           echo "--- Applying 50_add_susfs.patch... ---"
           patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
@@ -309,7 +309,7 @@
           cd ${{ env.kernel_folder }}
 
 
-          echo "--- SUSFS and Hide Stuff Patches applied ---"
+          echo "--- SUSFS Patches applied ---"
           echo -e "\nCONFIG_KSU_SUSFS=y" >> "arch/arm64/configs/${{ env.defconfig }}"
 
 
