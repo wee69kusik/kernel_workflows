@@ -318,7 +318,7 @@
 
 
           echo "--- SUSFS Patches applied ---"
-          echo -e "\nCONFIG_KSU_SUSFS=y" >> "arch/arm64/configs/${{ env.defconfig }}"
+          echo -e "\nCONFIG_KSU_SUSFS=y\nCONFIG_KSU_SUSFS_SUS_PATH=y\n" >> "arch/arm64/configs/${{ env.defconfig }}"
 
 
       - name: Building kernel
