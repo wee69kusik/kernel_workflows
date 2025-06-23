@@ -280,9 +280,6 @@
           echo "susfs_patches=$SUSFS_PATCHES" >> $GITHUB_ENV
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$SUSFS_FOLDER"
 
-          cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
-          cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
-
           cd "${{ env.kernel_folder }}"
           echo "--- Applying SUSFS Patches for ${{ matrix.build_type }} ---"
           case "${{ matrix.build_type }}" in
@@ -291,6 +288,8 @@
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
              echo "--- Applying fix_susfs_rejects.patch... ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
+             cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
+             cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
              cd KernelSU
              echo "--- Applying 10_enable_susfs_for_ksu.patch ---"
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
@@ -300,6 +299,8 @@
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
              echo "--- Applying fix_susfs_rejects.patch... ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
+             cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
+             cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
              echo "--- Applying BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
             ;;
