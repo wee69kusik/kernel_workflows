@@ -284,28 +284,33 @@
           cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
 
           cd "${{ env.kernel_folder }}"
-          echo "--- Applying SUSFS Patches ---"
-
-          echo "--- Applying 50_add_susfs.patch... ---"
-          patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
-
-          echo "--- Applying fix_susfs_rejects.patch... ---"
-          patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
-
-          echo "--- Applying additional ${{ matrix.build_type }} patches... ---"
+          echo "--- Applying SUSFS Patches for ${{ matrix.build_type }} ---"
           case "${{ matrix.build_type }}" in
             KSU)
+             echo "--- Applying 50_add_susfs.patch... ---"
+             patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
+             echo "--- Applying fix_susfs_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
              cd KernelSU
+             echo "--- Applying 10_enable_susfs_for_ksu.patch ---"
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
             RKSU)
+             echo "--- Applying 50_add_susfs.patch... ---"
+             patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
+             echo "--- Applying fix_susfs_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
+             echo "--- Applying BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
             ;;
             KSUN)
-              echo "--- Applying susfs patches... ---"
-              patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.5-to-1.5.8.patch" || true
-              cd ./KernelSU-Next
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch
+             echo "--- Applying susfs-1.5.8.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.8.patch" || true
+             echo "--- Applying fix_susfs-1.5.8_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.8_rejects.patch" || true
+             cd ./KernelSU-Next
+             echo "--- Applying 0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch ---"
+             patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
