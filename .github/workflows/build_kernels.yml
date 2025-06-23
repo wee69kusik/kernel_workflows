@@ -466,9 +466,9 @@
           echo "date=$date" >> $GITHUB_ENV
 
           if [ "${{ inputs.scheduled }}" == "true" ]; then
-           echo"tg_title=A new scheduled build has been completed!" >> $GITHUB_ENV
+           echo "tg_title=A new scheduled build has been completed!" >> $GITHUB_ENV
           else
-           echo"tg_title=A new kernel CI release has been completed!" >> $GITHUB_ENV
+           echo "tg_title=A new kernel CI release has been completed!" >> $GITHUB_ENV
           fi
 
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
