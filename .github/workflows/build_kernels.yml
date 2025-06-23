@@ -300,9 +300,9 @@
             ;;
             KSUN)
               echo "--- Applying susfs patches... ---"
-              patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-fs-upstream-susfs-v1.5.7-new-non-gki.patch" || true
+              patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.5-to-1.5.8.patch" || true
               cd ./KernelSU-Next
-              patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.5-v1.5.7-KSUN-v1.0.8.patch
+              patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
@@ -486,7 +486,7 @@
 
           Versions used for KernelSU variants & susfs:
           -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.7 ([${{ env.RKSU-SUSFS_V }}](${{ env.RKSU-SUSFS_URL }}))
-          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.7+
+          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.8
           -> SUSFS4KSU: [${{ env.SUSFS_COMMIT_HASH }}](https://gitlab.com/simonpunk/susfs4ksu/-/commit/${{ env.SUSFS_COMMIT_HASH }})
 
           Credits:
