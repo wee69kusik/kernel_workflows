@@ -1,0 +1,16 @@
+name: Scheduled Build
+
+permissions:
+  contents: write
+  actions: write
+on:
+  workflow_dispatch:
+  schedule:
+   - cron: "0 12 * * *"
+jobs:
+     build:
+      uses: ./.github/workflows/build_kernels.yml
+      secrets: inherit
+      with:
+       pre_release: true
+       scheduled: true

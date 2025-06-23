@@ -1,7 +1,5 @@
  name: Kernel Build
  on:
-  schedule:
-   - cron: "0 12 * * *"
   workflow_dispatch:
     inputs:
       pre_release:
@@ -9,6 +7,11 @@
         required: false
         type: boolean
         default: true
+      scheduled:
+        description: 'Is it a scheduled build?'
+        required: false
+        type: boolean
+        default: false
   workflow_call:
   pull_request:
   push:
@@ -456,6 +459,12 @@
           date="$(date +"%d/%m/%Y")"
           echo "date=$date" >> $GITHUB_ENV
 
+          if [ "${{ inputs.scheduled }}" == "true" ]; then
+           echo"tg_title=A new scheduled build has been completed!" >> $GITHUB_ENV
+          else
+           echo"tg_title=A new kernel CI release has been completed!" >> $GITHUB_ENV
+          fi
+
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
@@ -555,7 +564,7 @@
             -d "chat_id=@ok_kernel_ci" \
             -d "parse_mode=Markdown" \
             --data-urlencode "text=
-            • 🔔 A new kernel CI release has been completed!
+            • 🔔 ${{ env.tg_title }}
             🏷️ *Branch*: ${{ github.ref_name }}
             📌 *Tag*: ${{ env.TAG }}
             📆 *Released*: ${{ env.date }}
