@@ -343,7 +343,7 @@
           set -e
           cd ${{ env.kernel_folder }}
 
-          EXTRA=" DTC_PREBUILT=true DTC=$KERNEL_FOLDER/extra/dtc DTC_OVERLAY_TEST_EXT=$KERNEL_FOLDER/extra/ufdt_apply_overlay MKDTIMG=$KERNEL_FOLDER/extra/mkdtimg"
+          EXTRA=" DTC_PREBUILT=true DTC=${{ env.kernel_folder }}/extra/dtc DTC_OVERLAY_TEST_EXT=${{ env.kernel_folder }}/extra/ufdt_apply_overlay MKDTIMG=${{ env.kernel_folder }}/extra/mkdtimg"
           git clone https://github.com/TheSillyOk/kernel_extra -b main extra
 
           export CCACHE_EXEC=$(which ccache)
