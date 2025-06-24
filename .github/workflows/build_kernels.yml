@@ -193,11 +193,13 @@
         uses: actions/cache@v4
         with:
          path: ~/.ccache
-         key: ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}-${{ github.run_number }}
+         key: ${{ env.device }}-${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}-${{ github.run_number }}
          restore-keys: |
-           ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}
+           ${{ env.device }}-${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-${{ github.sha }}
+           ${{ env.device }}-${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache-
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-SUSFS_${{ matrix.susfs }}-ccache
            ${{ matrix.build_type }}-${{ matrix.kernel_config.tag }}-
+           ${{ env.device }}-${{ matrix.kernel_config.tag }}-
            -${{ matrix.kernel_config.tag }}-
 
       - name: Preparing kernel
