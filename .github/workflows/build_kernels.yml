@@ -414,7 +414,7 @@
            ;;
           esac
 
-          if [ "${{ matrix.susfs }}" ]; then
+          if [ "${{ matrix.susfs }}" == "true" ]; then
             BUILD="$BUILD.SUSFS"
           fi
 
