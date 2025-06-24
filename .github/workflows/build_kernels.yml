@@ -31,23 +31,36 @@
          defconfig: "vendor/trinket-perf_defconfig"
          config: "vendor/xiaomi-trinket.config vendor/laurel_sprout.config"
          patches_folder: "sm6125"
-         python3_patch: false
+         IN_DTBO: "out/arch/arm64/boot/dts/xiaomi/laurel_sprout-trinket-overlay.dtbo"
+
+       - kernel_name: "SM6125 - Ginkgo"
+         device: Ginkgo
+         kernel_url: "https://github.com/LineageOS/android_kernel_xiaomi_sm6125"
+         anykernel_branch: "ginkgo"
+         tag: "SM6125-22.2"
+         defconfig: "vendor/trinket-perf_defconfig"
+         config: "vendor/xiaomi-trinket.config vendor/ginkgo.config"
+         patches_folder: "sm6125"
+         IN_DTBO: "out/arch/arm64/boot/dts/xiaomi/ginkgo-trinket-overlay.dtbo"
 
        - kernel_name: "Snowflake"
          kernel_url: "https://github.com/liquidprjkt/snowflake_laurel_sprout"
          kernel_branch: "snowflake_noname"
          tag: "Snowflake"
          defconfig: "vendor/laurel_sprout-perf_defconfig"
+         python3_patch: true
 
        - kernel_name: "N18.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "lineage-18.1"
          tag: "NoName-18.1"
+         python3_patch: true
 
        - kernel_name: "N-VIC"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
          kernel_branch: "vic"
          tag: "NoName-VIC"
+         python3_patch: true
 
       build_type: ["Normal", "KSUN", "RKSU"]
       susfs: [false, true]
@@ -94,7 +107,9 @@
 
           set_config "susfs_branch" "kernel-4.14" "${{ matrix.kernel_config.susfs_branch }}"
           set_config "device" "MiA3" "${{ matrix.kernel_config.device }}"
-          set_config "python3" true "${{ matrix.kernel_config.python3_patch }}"
+          set_config "python3" false "${{ matrix.kernel_config.python3_patch }}"
+
+          set_config "IN_DTBO" "none" "${{ matrix.kernel_config.IN_DTBO }}"
 
 
 
@@ -328,18 +343,9 @@
           set -e
           cd ${{ env.kernel_folder }}
 
-          if [[ "${{ matrix.kernel_config.tag }}" == *"SM6125"* ]]; then
-           EXTRA=" DTC_PREBUILT=true DTC=${{ env.kernel_folder }}/dtc/dtc DTC_OVERLAY_TEST_EXT=${{ env.kernel_folder }}/libufdt/ufdt_apply_overlay MKDTIMG=${{ env.kernel_folder }}/libufdt/mkdtimg"
-           wget https://android.googlesource.com/platform/prebuilts/misc/+archive/refs/tags/android-15.0.0_r26/linux-x86.tar.gz -O androd.tar.gz
-           tar -xzf androd.tar.gz
-           git clone https://github.com/TheSillyOk/kernel_extra -b main extra
-           rm dtc/dtc && mv extra/dtc dtc/dtc
-           chmod +x dtc/dtc
-          else
-           EXTRA=""
-          fi
+          EXTRA=" DTC_PREBUILT=true DTC=$KERNEL_FOLDER/extra/dtc DTC_OVERLAY_TEST_EXT=$KERNEL_FOLDER/extra/ufdt_apply_overlay MKDTIMG=$KERNEL_FOLDER/extra/mkdtimg"
+          git clone https://github.com/TheSillyOk/kernel_extra -b main extra
 
-          echo "Building kernel using absolute paths..."
           export CCACHE_EXEC=$(which ccache)
           export ARCH=arm64
           export SUBARCH=arm64
@@ -347,7 +353,7 @@
           export KBUILD_BUILD_HOST="Github"
           export PATH="${{ env.tools_folder }}/clang/bin:$PATH"
           BUILD_START_TIME=$(date +%s)
-
+           mkdir -p "${{ env.kernel_folder }}/out/arch/arm64/boot/dts/xiaomi/.ginkgo-trinket-overlay.dtbo.qcom-base"
           mkdir -p "${{ env.kernel_folder }}/artifacts"
 
           make O="${{ env.kernel_folder }}/out" ARCH=arm64 ${{ env.defconfig }} ${{ env.config }}
@@ -371,45 +377,46 @@
 
           if [ -e "$BOOT_FOLDER/Image.gz-dtb" ]; then
             cp -f "$BOOT_FOLDER/Image.gz-dtb" "$BOOT_FOLDER/ak_folder"
+            echo "--- Added: Image.gz-dtb ---"
           else
 
            if [ -e "$BOOT_FOLDER/Image.gz" ]; then
              cp -f "$BOOT_FOLDER/Image.gz" "$BOOT_FOLDER/ak_folder"
+             echo "--- Added: Image.gz ---"
            fi
 
           fi
 
           if [ -e "$BOOT_FOLDER/dtbo.img" ]; then
             cp -f "$BOOT_FOLDER/dtbo.img" "$BOOT_FOLDER/ak_folder"
+            echo "--- Added: dtbo.img ---"
+          elif [ "${{ env.IN_DTBO }}" != "none" ]; then
+            echo "--- Creating dtbo.img manually... ---"
+            python3 "${{ env.kernel_folder }}/extra/mkdtboimg.py" create "$BOOT_FOLDER/ak_folder/dtbo.img" --custom0=0x00000000 --custom1=0x00000000 --page_size=4096 "${{ env.kernel_folder }}/${{ env.IN_DTBO }}"
           fi
 
-          case "${{ matrix.build_type }}-${{ matrix.susfs }}" in
-           KSUN-false)
+          case "${{ matrix.build_type }}" in
+           KSUN)
             BUILD="-KSUNext"
            ;;
-           KSUN-true)
-            BUILD="-KSUNext.SUSFS"
-           ;;
-           KSU-false)
+           KSU)
             BUILD="-KSU"
            ;;
-           KSU-true)
-            BUILD="-KSU.SUSFS"
-           ;;
-           RKSU-false)
+           RKSU)
             BUILD="-RKSU"
            ;;
-           RKSU-true)
-            BUILD="-RKSU.SUSFS"
-           ;;
-           Normal*)
+           Normal)
             BUILD=""
            ;;
            *)
             BUILD=""
-            echo "Invalid selection for build_type and/or susfs: ${{ matrix.build_type }}-${{ matrix.susfs }}"
+            echo "Invalid selection for build_type: ${{ matrix.build_type }}"
            ;;
           esac
+
+          if [ "${{ matrix.susfs }}" ]; then
+            BUILD="$BUILD.SUSFS"
+          fi
 
 
           date="$(date +"%Y.%m.%d")"
