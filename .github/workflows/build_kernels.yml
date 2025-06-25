@@ -11,9 +11,9 @@
     inputs:
       scheduled:
         description: 'Is it a scheduled build?'
-        required: false
+        required: true
         type: boolean
-        default: false
+        default: true
   pull_request:
   push:
     paths-ignore:
@@ -554,7 +554,7 @@
               echo "Created tag: $TAG"
               echo "TAG=$TAG" >> $GITHUB_ENV
 
-              git tag $TAG
+              git tag $TAG || true
               git push origin $TAG || true
             else
               echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
