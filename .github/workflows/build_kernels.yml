@@ -7,12 +7,13 @@
         required: false
         type: boolean
         default: true
+  workflow_call:
+    inputs:
       scheduled:
         description: 'Is it a scheduled build?'
         required: false
         type: boolean
         default: false
-  workflow_call:
   pull_request:
   push:
     paths-ignore:
