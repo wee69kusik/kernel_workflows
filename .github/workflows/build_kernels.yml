@@ -270,7 +270,7 @@
             cd KernelSU
            ;;
            RKSU-true)
-            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s susfs-main
+            curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
@@ -314,14 +314,15 @@
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
             RKSU)
-             echo "--- Applying 50_add_susfs.patch... ---"
-             patch -p1 -F 3 -N < "$SUSFS_PATCHES/50_add_susfs_in_${{ env.susfs_branch }}.patch" || true
-             echo "--- Applying fix_susfs_rejects.patch... ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs_rejects.patch" || true
-             cp -r $SUSFS_PATCHES/fs/* ${{ env.kernel_folder }}/fs/
-             cp -r $SUSFS_PATCHES/include/linux/* ${{ env.kernel_folder }}/include/linux
-             echo "--- Applying BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/BACKPORT-SUSFS-v1.5.7-NON-GKI-4.14.patch"
+             echo "--- Applying susfs-1.5.8.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.8.patch" || true
+             echo "--- Applying fix_susfs-1.5.8_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.8_rejects.patch" || true
+             echo "--- Applying namespace-susfs-1.5.8-to-1.5.5.patch ---"
+             patch -p1 -F 3 -N <"${{ env.patches_dir }}/namespace-susfs-1.5.8-to-1.5.5.patch"
+             cd KernelSU
+             echo "--- Applying RKSU-SUSFS-1.5.8.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/RKSU/RKSU-SUSFS-1.5.8.patch"
             ;;
             KSUN)
              echo "--- Applying susfs-1.5.8.patch ---"
@@ -468,7 +469,7 @@
           get_ref "KSUN" "https://github.com/KernelSU-Next/KernelSU-Next.git" "KernelSU-Next/KernelSU-Next" "commit" "HEAD"
 
           get_ref "RKSU" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "HEAD"
-          get_ref "RKSU-SUSFS" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "susfs-main"
+          # get_ref "RKSU-SUSFS" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "susfs-main"
 
           SUSFS_COMMIT_HASH=$(git ls-remote https://gitlab.com/simonpunk/susfs4ksu.git refs/heads/kernel-4.14 | awk '{ print $1 }')
           echo "SUSFS_COMMIT_HASH=$SUSFS_COMMIT_HASH" >> $GITHUB_ENV
@@ -493,7 +494,7 @@
 
           echo "KSUN_V=$(bash ./extract_ksuver.sh "https://github.com/KernelSU-Next/KernelSU-Next" "kernel/Makefile" "kernel" "next")" >> $GITHUB_ENV
           echo "RKSU_V=$(bash ./extract_ksuver.sh "https://github.com/rsuntk/KernelSU" "kernel/Makefile" "kernel" "main")" >> $GITHUB_ENV
-          echo "RKSU-SUSFS_V=$(bash ./extract_ksuver.sh "https://github.com/rsuntk/KernelSU" "kernel/Makefile" "kernel" "susfs-main")" >> $GITHUB_ENV
+          # echo "RKSU-SUSFS_V=$(bash ./extract_ksuver.sh "https://github.com/rsuntk/KernelSU" "kernel/Makefile" "kernel" "susfs-main")" >> $GITHUB_ENV
 
       - name: Set release body
         run: |
@@ -513,7 +514,7 @@
           -> KernelSU-Next (`KSUN`): [Releases](https://github.com/rifsxd/KernelSU-Next/releases) / [CI builds](https://t.me/ksunext_ci)
 
           Versions used for KernelSU variants & susfs:
-          -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.7 ([${{ env.RKSU-SUSFS_V }}](${{ env.RKSU-SUSFS_URL }}))
+          -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.8
           -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.8
           -> SUSFS4KSU: [${{ env.SUSFS_COMMIT_HASH }}](https://gitlab.com/simonpunk/susfs4ksu/-/commit/${{ env.SUSFS_COMMIT_HASH }})
 
@@ -590,5 +591,4 @@
             [Release](https://github.com/${{ github.repository }}/releases/tag/${{ env.TAG }}) • [Workflow run](${{ env.run }}) • [Nightly](${{ env.nightly_run }})
             
             • KernelSU-Next (KSUN) [${{ env.KSUN_V }}](${{ env.KSUN_URL }})
-            • Rissu's KernelSU (RKSU) [${{ env.RKSU_V }}](${{ env.RKSU_URL }})
-            —> w/ SUSFS: [${{ env.RKSU-SUSFS_V }}](${{ env.RKSU-SUSFS_URL }})"
+            • Rissu's KernelSU (RKSU) [${{ env.RKSU_V }}](${{ env.RKSU_URL }})"
