@@ -473,8 +473,8 @@
           get_ref "RKSU" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "HEAD"
           # get_ref "RKSU-SUSFS" "https://github.com/rsuntk/KernelSU" "rsuntk/KernelSU" "commit" "susfs-main"
 
-          SUSFS_COMMIT_HASH=$(git ls-remote https://gitlab.com/simonpunk/susfs4ksu.git refs/heads/kernel-4.14 | awk '{ print $1 }')
-          echo "SUSFS_COMMIT_HASH=$SUSFS_COMMIT_HASH" >> $GITHUB_ENV
+          # SUSFS_COMMIT_HASH=$(git ls-remote https://gitlab.com/simonpunk/susfs4ksu.git refs/heads/kernel-4.14 | awk '{ print $1 }')
+          # echo "SUSFS_COMMIT_HASH=$SUSFS_COMMIT_HASH" >> $GITHUB_ENV
 
           echo "artifacts_dir=$PWD/downloaded-artifacts" >> $GITHUB_ENV
 
@@ -518,7 +518,6 @@
           Versions used for KernelSU variants & susfs:
           -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.8
           -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.8
-          -> SUSFS4KSU: [${{ env.SUSFS_COMMIT_HASH }}](https://gitlab.com/simonpunk/susfs4ksu/-/commit/${{ env.SUSFS_COMMIT_HASH }})
 
           Credits:
           • @Skyblueborb for helping in building the kernel & kernel source
