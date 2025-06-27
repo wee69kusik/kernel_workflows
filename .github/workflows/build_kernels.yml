@@ -114,6 +114,7 @@
 
 
       - name: Maximize Build Space
+        continue-on-error: true
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
           remove-dotnet: 'true'
