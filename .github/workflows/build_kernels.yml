@@ -161,6 +161,7 @@
             llvm-dev
 
           sudo apt install libncurses6 libfdt-dev
+          sudo sh -c "curl -L https://raw.githubusercontent.com/kadwanev/retry/master/retry -o /usr/local/bin/retry && chmod +x /usr/local/bin/retry"
           echo "tools_folder=$WORKSPACE_FOLDER" >> $GITHUB_ENV
 
       - name: Cache Clang
@@ -179,7 +180,7 @@
         run: |
           set -e
           echo "Downloading and extracting clang..."
-          wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz
+          retry -t 3 -s 5 "wget https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz -O clang.tar.gz"
           mkdir -p clang
           tar -xf clang.tar.gz -C clang
           echo "Clang downloaded and extracted."
