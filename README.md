@@ -1,3 +1,22 @@
+# Kernel recommendations:
+
+### Redmi note 8/8T (*ginkgo*/willow)
+- SM6125 -> Recommended to be used on LOS, support in other ROMS is not guaranteed. Non RDP/Non Dynamic ROMs only.
+
+Note: while the kernel doesn't have major modifications, no official support is provided if you're using a different kernel in LOS. DO NOT report bugs while using this kernel.
+
+### Mi A3 (laurel_sprout)
+
+- SM6125 -> Recommended to be used on LOS, support in other ROMS is not guaranteed. Non RDP ROMs only.
+
+Note: while the kernel doesn't have major modifications, no official support is provided if you're using a different kernel in LOS. DO NOT report bugs while using this kernel.
+
+- Snowflake -> Based on NoName, has optimizations over NoName, should work on A15 (not sure about other versions). Non RDP.
+
+- NoName 18.1 -> Recommended for A11-A14 QPR1 ROMs. Non RDP.
+
+- NoName VIC -> Use on RDP roms.
+
 # Kernel Labels:
 
 The kernel label uses the following format:
