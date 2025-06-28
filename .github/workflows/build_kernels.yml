@@ -18,6 +18,8 @@
   push:
     paths-ignore:
       - 'README.md'
+    branches:
+      - test
  jobs:
   build:
     runs-on: ubuntu-latest
