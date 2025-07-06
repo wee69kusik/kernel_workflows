@@ -318,22 +318,22 @@
              patch -p1 -F 3 -N < "$SUSFS_PATCHES/KernelSU/10_enable_susfs_for_ksu.patch"
             ;;
             RKSU)
-             echo "--- Applying susfs-1.5.8.patch ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.8.patch" || true
-             echo "--- Applying fix_susfs-1.5.8_rejects.patch... ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.8_rejects.patch" || true
+             echo "--- Applying susfs-1.5.9.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.9.patch" || true
+             echo "--- Applying fix_susfs-1.5.9_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.9_rejects.patch" || true
              cd KernelSU
-             echo "--- Applying RKSU-SUSFS-1.5.8.patch ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/RKSU/RKSU-SUSFS-1.5.8.patch"
+             echo "--- Applying RKSU-SUSFS-1.5.9.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/RKSU/RKSU-SUSFS-1.5.9.patch"
             ;;
             KSUN)
-             echo "--- Applying susfs-1.5.8.patch ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.8.patch" || true
-             echo "--- Applying fix_susfs-1.5.8_rejects.patch... ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.8_rejects.patch" || true
+             echo "--- Applying susfs-1.5.9.patch ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.9.patch" || true
+             echo "--- Applying fix_susfs-1.5.9_rejects.patch... ---"
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.9_rejects.patch" || true
              cd ./KernelSU-Next
-             echo "--- Applying 0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch ---"
-             patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/0001-kernel-implement-susfs-v1.5.8-KernelSU-Next-v1.0.8.patch
+             echo "--- KSUN-SUSFS-1.5.9.patch ---"
+             patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/KSUN-SUSFS-1.5.9.patch
             ;;
           esac
           echo "--- Additional ${{ matrix.build_type }} patches applied ---"
@@ -514,8 +514,8 @@
           -> KernelSU-Next (`KSUN`): [Releases](https://github.com/rifsxd/KernelSU-Next/releases) / [CI builds](https://t.me/ksunext_ci)
 
           Versions used for KernelSU variants & susfs:
-          -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.8
-          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.8
+          -> Rissu's KernelSU  (`RKSU`): [${{ env.RKSU_V }}](${{ env.RKSU_URL }}) - SUSFS 1.5.9
+          -> KernelSU Next (`KSUN`): [${{ env.KSUN_V }}](${{ env.KSUN_URL }}) - SUSFS 1.5.9
 
           Credits:
           • @Skyblueborb for helping in building the kernel & kernel source
