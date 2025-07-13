@@ -257,28 +257,28 @@
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/scope_min_manual_hooks_v1.4.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/scope_min_manual_hooks_v1.4.patch"
             cd KernelSU
            ;;
            KSUN-*)
             curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch"
             cd KernelSU-Next
            ;;
            RKSU-false)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch"
             cd KernelSU
            ;;
            RKSU-true)
             curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/path_unmount.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/get_cred_rcu.patch"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/strncpy_from_user_nofault.patch"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch" || true
+             patch -p1 -F 3 -N < "${{ env.patches_dir }}/KSUN/syscall_hooks.patch"
             cd KernelSU
            ;;
            *)
