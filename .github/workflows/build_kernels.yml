@@ -220,7 +220,7 @@
 
           PATCHES_FOLDER="${{ env.workspace_folder }}/kernel_patches"
           echo "patches_dir=$PATCHES_FOLDER" >> $GITHUB_ENV
-          git clone "${{ env.patches_url }}"${{ env.patches_branch }} "$PATCHES_FOLDER"
+          git clone --depth=1 "${{ env.patches_url }}"${{ env.patches_branch }} "$PATCHES_FOLDER"
 
           mkdir -p "$KERNEL_FOLDER/common/fs" "$KERNEL_FOLDER/common/include/linux"
            if ${{ env.python3 }}; then
@@ -301,7 +301,7 @@
           SUSFS_FOLDER="${{ env.workspace_folder }}/susfs4ksu"
           SUSFS_PATCHES="$SUSFS_FOLDER/kernel_patches"
           echo "susfs_patches=$SUSFS_PATCHES" >> $GITHUB_ENV
-          git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$SUSFS_FOLDER"
+          # git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git -b "${{ env.susfs_branch }}" "$SUSFS_FOLDER"
 
           cd "${{ env.kernel_folder }}"
           echo "--- Applying SUSFS Patches for ${{ matrix.build_type }} ---"
@@ -351,7 +351,7 @@
           cd ${{ env.kernel_folder }}
 
           EXTRA=" DTC_PREBUILT=true DTC=${{ env.kernel_folder }}/extra/dtc DTC_OVERLAY_TEST_EXT=${{ env.kernel_folder }}/extra/ufdt_apply_overlay MKDTIMG=${{ env.kernel_folder }}/extra/mkdtimg"
-          git clone https://github.com/TheSillyOk/kernel_extra -b main extra
+          git clone --depth=1 https://github.com/TheSillyOk/kernel_extra -b main extra
 
           export CCACHE_EXEC=$(which ccache)
           export ARCH=arm64
@@ -488,7 +488,7 @@
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
           echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
-          git clone https://github.com/TheSillyOk/sh
+          git clone --depth=1 https://github.com/TheSillyOk/sh
           echo "sh_dir=$PWD/sh" >> $GITHUB_ENV
           cp sh/extract_ksuver.sh $PWD
 
@@ -527,7 +527,7 @@
          GH_TOKEN: ${{ github.token }}
         run: |
             gh auth setup-git
-            git clone https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
+            git clone --depth=1 https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
             cd repo
             echo "repo_dir=$PWD" >> $GITHUB_ENV
 
