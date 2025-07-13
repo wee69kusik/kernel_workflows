@@ -357,18 +357,11 @@
           export KBUILD_BUILD_USER="Ok"
           export KBUILD_BUILD_HOST="Github"
           export PATH="${{ env.tools_folder }}/clang/bin:$PATH"
-          BUILD_START_TIME=$(date +%s)
            mkdir -p "${{ env.kernel_folder }}/out/arch/arm64/boot/dts/xiaomi/.ginkgo-trinket-overlay.dtbo.qcom-base"
           mkdir -p "${{ env.kernel_folder }}/artifacts"
 
           make O="${{ env.kernel_folder }}/out" ARCH=arm64 ${{ env.defconfig }} ${{ env.config }}
           make O="${{ env.kernel_folder }}/out"$EXTRA CC="ccache clang" LD=ld.lld LLVM=1 LLVM_IAS=1 -j"$(nproc --all)" CROSS_COMPILE=aarch64-linux-gnu-
-
-          BUILD_END_TIME=$(date +%s)
-          DIFF=$((BUILD_END_TIME - BUILD_START_TIME))
-          echo "elapsed_time=$DIFF" >> $GITHUB_OUTPUT
-          echo -e "Build completed in $((DIFF / 60)) minute(s) and $((DIFF % 60)) seconds."
-
 
       - name: Handle AnyKernel3 zips
         id: anykernel
