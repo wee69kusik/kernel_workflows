@@ -51,7 +51,6 @@
          kernel_branch: "snowflake_noname"
          tag: "Snowflake"
          defconfig: "vendor/laurel_sprout-perf_defconfig"
-         python3_patch: true
 
        - kernel_name: "N18.1"
          kernel_url: "https://github.com/TheSillyOk/kernel_laurel_sprout" 
