@@ -317,8 +317,6 @@
             RKSU)
              echo "--- Applying susfs-1.5.9.patch ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.9.patch" || true
-             echo "--- Applying fix_susfs-1.5.9_rejects.patch... ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.9_rejects.patch" || true
              cd KernelSU
              echo "--- Applying RKSU-SUSFS-1.5.9.patch ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/RKSU/RKSU-SUSFS-1.5.9.patch"
@@ -326,8 +324,6 @@
             KSUN)
              echo "--- Applying susfs-1.5.9.patch ---"
              patch -p1 -F 3 -N < "${{ env.patches_dir }}/susfs-1.5.9.patch" || true
-             echo "--- Applying fix_susfs-1.5.9_rejects.patch... ---"
-             patch -p1 -F 3 -N < "${{ env.patches_dir }}/${{ env.patches_folder }}/fix_susfs-1.5.9_rejects.patch" || true
              cd ./KernelSU-Next
              echo "--- KSUN-SUSFS-1.5.9.patch ---"
              patch -p1 --forward --fuzz=3 < ${{ env.patches_dir }}/KSUN/KSUN-SUSFS-1.5.9.patch
