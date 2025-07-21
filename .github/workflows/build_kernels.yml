@@ -471,7 +471,7 @@
           fi
 
           echo "run=${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
-          echo "nightly_run=https://nightly.link/TheSillyOk/kernel_laurel_sprout_workflows/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
+          echo "nightly_run=https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }}" >> $GITHUB_ENV
 
           git clone --depth=1 https://github.com/TheSillyOk/sh
           echo "sh_dir=$PWD/sh" >> $GITHUB_ENV
@@ -512,7 +512,7 @@
          GH_TOKEN: ${{ github.token }}
         run: |
             gh auth setup-git
-            git clone --depth=1 https://github.com/TheSillyOk/kernel_laurel_sprout_workflows --depth=1 --branch="${{ github.ref_name }}" repo
+            git clone --depth=1 "https://github.com/${{ github.repository }}" --depth=1 --branch="${{ github.ref_name }}" repo
             cd repo
             echo "repo_dir=$PWD" >> $GITHUB_ENV
 
