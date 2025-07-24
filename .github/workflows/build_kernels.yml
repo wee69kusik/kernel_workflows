@@ -29,7 +29,7 @@
       kernel_config:
        - kernel_name: "WEEkrnl"
          kernel_url: "https://github.com/wee69kusik/android_kernel_google_msm-4.14"
-         kernel_branch: "wee_krnl"
+         kernel_branch: "snowflake_noname"
          tag: "WEEkrnl"
          defconfig: "detconfig"
 
