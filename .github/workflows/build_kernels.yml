@@ -29,13 +29,10 @@
       kernel_config:
        - kernel_name: "WEEkrnl"
          kernel_url: "https://github.com/wee69kusik/android_kernel_google_msm-4.14"
-         anykernel_branch: "weeKernel"
+         kernel_branch: "wee_krnl"
          tag: "WEEkrnl"
-         defconfig: "defconfig"
-         config: " "
-         patches_folder: "rn8p"
-         IN_DTBO: " "
-         
+         defconfig: "detconfig"
+
       build_type: ["Normal", "KSUN", "RKSU"]
       susfs: [false, true]
       exclude:
@@ -80,7 +77,7 @@
           set_config "kernel_branch" "" " -b ${{ matrix.kernel_config.kernel_branch }}"
 
           set_config "susfs_branch" "kernel-4.14" "${{ matrix.kernel_config.susfs_branch }}"
-          set_config "device" "MiA3" "${{ matrix.kernel_config.device }}"
+          set_config "device" "RN8P" "${{ matrix.kernel_config.device }}"
           set_config "python3" false "${{ matrix.kernel_config.python3_patch }}"
 
           set_config "IN_DTBO" "none" "${{ matrix.kernel_config.IN_DTBO }}"
